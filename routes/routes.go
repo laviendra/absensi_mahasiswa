@@ -2,44 +2,81 @@ package routes
 
 import (
 	"absensi-mahasiswa/controllers"
+	"absensi-mahasiswa/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine) {
-	//Mahasiswa
-	r.GET(
+
+	// Login tidak pakai middleware
+	r.POST(
+		"/login",
+		controllers.Login,
+	)
+
+
+	// Route yang butuh login
+	protected := r.Group("/")
+
+	protected.Use(middleware.AuthMiddleware())
+
+
+	// Dashboard
+	protected.GET(
+		"/dashboard",
+		controllers.Dashboard,
+	)
+
+
+	// Mahasiswa
+	protected.GET(
 		"/mahasiswa",
 		controllers.GetMahasiswa,
 	)
 
-	r.POST(
+	protected.POST(
 		"/mahasiswa",
 		controllers.CreateMahasiswa,
-		
 	)
 
-	r.PUT(
+	protected.PUT(
 		"/mahasiswa",
 		controllers.UpdateMahasiswa,
 	)
 
-
-	r.DELETE(
+	protected.DELETE(
 		"/mahasiswa",
 		controllers.DeleteMahasiswa,
 	)
-	//Absensi
-	r.GET(
+
+
+	// Absensi
+	protected.GET(
 		"/absensi",
 		controllers.GetAbsensi,
 	)
-	r.POST(
+
+	protected.GET(
+		"/absensi/filter",
+		controllers.FilterAbsensi,
+	)
+
+	protected.POST(
 		"/absensi/masuk",
 		controllers.AbsensiMasuk,
 	)
-	r.PUT(
+
+	protected.PUT(
 		"/absensi/pulang/:id",
 		controllers.AbsensiPulang,
 	)
+
+	//rekap
+	protected.GET("/rekap", controllers.RekapBulanan())
+
+	// export
+	protected.GET("/rekap/pdf", controllers.ExportPDF)
+
+	protected.GET("/rekap/excel", controllers.ExportExcel)
 }
