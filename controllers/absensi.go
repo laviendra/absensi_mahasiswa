@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -91,11 +92,19 @@ func AbsensiMasuk(c *gin.Context) {
 		sekarang.Location(),
 	)
 
+	batasTutup := time.Date(
+		sekarang.Year(),
+		sekarang.Month(),
+		sekarang.Day(),
+		10, 0, 0, 0,
+		sekarang.Location(),
+	)
+
 	if sekarang.After(batasMasuk) {
 		status = "Terlambat"
 	}
 
-	if sekarang.Hour() >= 10 {
+	if sekarang.After(batasTutup) {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Absensi sudah ditutup",
 		})
@@ -157,11 +166,12 @@ func GetAbsensi(c *gin.Context) {
 			m.nama,
 			a.tanggal,
 			a.jam_masuk,
-			IFNULL(a.jam_pulang, '') as jam_pulang,
-			a.status
+			a.jam_pulang,
+			a.status_kehadiran
 		FROM absensi a
 		JOIN mahasiswa m
 		ON a.mahasiswa_id = m.id
+		ORDER BY a.tanggal DESC, m.nama ASC
 	`)
 
 	if err != nil {
@@ -179,12 +189,15 @@ func GetAbsensi(c *gin.Context) {
 
 		var absen models.AbsensiResponse
 
+		var jamMasuk sql.NullString
+		var jamPulang sql.NullString
+
 		err := rows.Scan(
 			&absen.ID,
 			&absen.Nama,
 			&absen.Tanggal,
-			&absen.JamMasuk,
-			&absen.JamPulang,
+			&jamMasuk,
+			&jamPulang,
 			&absen.Status,
 		)
 
@@ -195,6 +208,14 @@ func GetAbsensi(c *gin.Context) {
 			return
 		}
 
+		if jamMasuk.Valid {
+			absen.JamMasuk = jamMasuk.String
+		}
+
+		if jamPulang.Valid {
+			absen.JamPulang = jamPulang.String
+		}
+
 		data = append(data, absen)
 	}
 
@@ -202,7 +223,53 @@ func GetAbsensi(c *gin.Context) {
 }
 
 func AbsensiPulang(c *gin.Context) {
+	var statusKehadiran string
+
 	id := c.Param("id")
+
+	err := database.DB.QueryRow(
+		`SELECT status_kehadiran
+		FROM absensi
+		WHERE id = ?`,
+		id,
+	).Scan(&statusKehadiran)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Data absensi tidak ditemukan",
+		})
+		return
+	}
+
+	if statusKehadiran == "Tidak Hadir" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Mahasiswa tidak hadir, tidak dapat melakukan absensi pulang",
+		})
+		return
+	}
+
+	var jamPulangDB sql.NullString
+
+	err = database.DB.QueryRow(
+		`SELECT jam_pulang
+		FROM absensi
+		WHERE id = ?`,
+		id,
+	).Scan(&jamPulangDB)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if jamPulangDB.Valid {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Mahasiswa sudah melakukan absensi pulang",
+		})
+		return
+	}
 
 	jamPulang := time.Now().Format("15:04:05")
 	result, err := database.DB.Exec(
@@ -233,6 +300,8 @@ func AbsensiPulang(c *gin.Context) {
 		"message":    "Absensi pulang berhasil",
 		"jam_pulang": jamPulang,
 	})
+
+
 }
 
 func FilterAbsensi(c *gin.Context) {
@@ -331,13 +400,27 @@ func TidakHadir() {
 
 	defer rows.Close()
 
+	tx, err := database.DB.Begin()
+
+	if err != nil {
+		return
+	}
+
+
 	for rows.Next() {
+
+	err = tx.Commit()
+
+		if err != nil {
+			tx.Rollback()
+			return
+		}
 
 		var mahasiswaID int
 
 		rows.Scan(&mahasiswaID)
 
-		database.DB.Exec(`
+		_, err = tx.Exec(`
 			INSERT INTO absensi
 			(mahasiswa_id, tanggal, status, status_kehadiran)
 			VALUES (?, ?, ?, ?)
@@ -347,5 +430,10 @@ func TidakHadir() {
 			"Tidak Hadir",
 			"Tidak Hadir",
 		)
+
+		if err != nil {
+			tx.Rollback()
+			return
+		}
 	}
 }
