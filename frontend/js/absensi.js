@@ -10,35 +10,6 @@ const inputTanggal = document.getElementById("tanggalFilter");
 const hariIni = new Date().toISOString().slice(0, 10);
 inputTanggal.value = hariIni;
 
-// isi dropdown mahasiswa (dipakai buat tombol Absen Masuk)
-fetch("http://localhost:8080/mahasiswa", {
-
-    headers: {
-        "Authorization": "Bearer " + token
-    }
-
-})
-
-.then(response => response.json())
-
-.then(data => {
-
-    let option = "";
-
-    data.forEach(mhs => {
-
-        option += `
-        <option value="${mhs.id}">
-        ${mhs.nama}
-        </option>
-        `;
-
-    });
-
-    document.getElementById("mahasiswa").innerHTML = option;
-
-});
-
 function loadAbsensi(tanggal) {
 
     fetch("http://localhost:8080/absensi/filter?tanggal=" + tanggal, {
@@ -59,17 +30,32 @@ function loadAbsensi(tanggal) {
 
         data.forEach((item, index) => {
 
-            let tombol = "-";
+            let aksi = "-";
 
-            if (item.jam_masuk && !item.jam_pulang) {
+            // absen masuk/pulang cuma boleh dilakukan untuk tanggal hari ini,
+            // data tanggal lain sifatnya cuma riwayat (read only)
+            if (tanggal === hariIni) {
 
-                tombol = `
-                <button
-                    class="btn btn-warning btn-sm"
-                    onclick="absenPulang(${item.absensi_id})">
-                    Pulang
-                </button>
-                `;
+                if (!item.jam_masuk) {
+
+                    aksi = `
+                    <button
+                        class="btn btn-success btn-sm"
+                        onclick="absenMasuk(${item.mahasiswa_id})">
+                        Masuk
+                    </button>
+                    `;
+
+                } else if (!item.jam_pulang) {
+
+                    aksi = `
+                    <button
+                        class="btn btn-warning btn-sm"
+                        onclick="absenPulang(${item.absensi_id})">
+                        Pulang
+                    </button>
+                    `;
+                }
             }
 
             let warna = "secondary";
@@ -87,7 +73,7 @@ function loadAbsensi(tanggal) {
                 <td>${item.jam_masuk || "-"}</td>
                 <td>${item.jam_pulang || "-"}</td>
                 <td><span class="badge bg-${warna}">${item.status_kehadiran}</span></td>
-                <td>${tombol}</td>
+                <td>${aksi}</td>
 
             </tr>
 
@@ -109,9 +95,7 @@ inputTanggal.addEventListener("change", () => {
     loadAbsensi(inputTanggal.value);
 });
 
-function absenMasuk() {
-
-    let id = document.getElementById("mahasiswa").value;
+function absenMasuk(mahasiswaId) {
 
     fetch("http://localhost:8080/absensi/masuk", {
 
@@ -124,7 +108,7 @@ function absenMasuk() {
 
         body: JSON.stringify({
 
-            mahasiswa_id: Number(id)
+            mahasiswa_id: Number(mahasiswaId)
 
         })
 

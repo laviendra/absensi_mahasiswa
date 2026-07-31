@@ -91,6 +91,7 @@ function simpanMahasiswa(){
     if(id != ""){
 
         method = "PUT";
+        url = "http://localhost:8080/mahasiswa/" + id;
 
     }
 
@@ -106,7 +107,6 @@ function simpanMahasiswa(){
 
         body: JSON.stringify({
 
-            id: id,
             nama: nama,
             jurusan: jurusan
 
@@ -120,7 +120,7 @@ function simpanMahasiswa(){
 
     .then(data=>{
 
-        alert("Data berhasil disimpan");
+        alert(data.message || data.error || "Terjadi kesalahan");
 
         location.reload();
 
@@ -182,7 +182,7 @@ function hapusMahasiswa(id){
 
 
         fetch(
-            "http://localhost:8080/mahasiswa?id="+id,
+            "http://localhost:8080/mahasiswa/" + id,
             {
                 method:"DELETE",
 
@@ -198,7 +198,7 @@ function hapusMahasiswa(id){
 
         .then(data=>{
 
-            alert("Mahasiswa berhasil dihapus");
+            alert(data.message || data.error || "Terjadi kesalahan");
 
             location.reload();
 

@@ -27,9 +27,9 @@ func Dashboard(c *gin.Context) {
 		return
 	}
 
-	//total hadir
+	//total hadir hari ini
 	err = database.DB.QueryRow(
-		`SELECT COUNT(*) FROM absensi WHERE status_kehadiran = 'Hadir'`,
+		`SELECT COUNT(*) FROM absensi WHERE status_kehadiran = 'Hadir' AND tanggal = CURDATE()`,
 	).Scan(&dashboard.HadirHariIni)
 
 	if err != nil {
@@ -39,9 +39,9 @@ func Dashboard(c *gin.Context) {
 		return
 	}
 
-	//total terlambat
+	//total terlambat hari ini
 	err = database.DB.QueryRow(
-		`SELECT COUNT(*) FROM absensi WHERE status_kehadiran = 'Terlambat'`,
+		`SELECT COUNT(*) FROM absensi WHERE status_kehadiran = 'Terlambat' AND tanggal = CURDATE()`,
 	).Scan(&dashboard.Terlambat)
 
 	if err != nil {
@@ -51,9 +51,9 @@ func Dashboard(c *gin.Context) {
 		return
 	}
 
-	//total belum absen
+	//total belum absen hari ini
 	err = database.DB.QueryRow(
-		`SELECT COUNT(*) FROM mahasiswa WHERE id NOT IN (SELECT DISTINCT mahasiswa_id FROM absensi)`,
+		`SELECT COUNT(*) FROM mahasiswa WHERE id NOT IN (SELECT DISTINCT mahasiswa_id FROM absensi WHERE tanggal = CURDATE())`,
 	).Scan(&dashboard.BelumAbsen)
 
 	if err != nil {
@@ -301,6 +301,7 @@ func AbsensiPulang(c *gin.Context) {
 		"jam_pulang": jamPulang,
 	})
 
+
 }
 
 // FilterAbsensi menampilkan absensi PER TANGGAL untuk SEMUA mahasiswa
@@ -436,16 +437,12 @@ func TidakHadir() {
 
 	for rows.Next() {
 
-		err = tx.Commit()
+		var mahasiswaID int
 
-		if err != nil {
+		if err := rows.Scan(&mahasiswaID); err != nil {
 			tx.Rollback()
 			return
 		}
-
-		var mahasiswaID int
-
-		rows.Scan(&mahasiswaID)
 
 		_, err = tx.Exec(`
 			INSERT INTO absensi
@@ -462,5 +459,12 @@ func TidakHadir() {
 			tx.Rollback()
 			return
 		}
+	}
+
+	// commit sekali di akhir, setelah semua mahasiswa yang belum
+	// absen berhasil di-insert sebagai "Tidak Hadir"
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return
 	}
 }

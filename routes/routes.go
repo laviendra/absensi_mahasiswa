@@ -41,12 +41,12 @@ func SetupRoutes(r *gin.Engine) {
 	)
 
 	protected.PUT(
-		"/mahasiswa",
+		"/mahasiswa/:id",
 		controllers.UpdateMahasiswa,
 	)
 
 	protected.DELETE(
-		"/mahasiswa",
+		"/mahasiswa/:id",
 		controllers.DeleteMahasiswa,
 	)
 

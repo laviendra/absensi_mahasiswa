@@ -15,7 +15,7 @@ func ConnectDB() {
 
 	DB, err = sql.Open(
 		"mysql",
-		"root:@tcp(localhost:3306)/absensi_mahasiswa",
+		"root:@tcp(localhost:3306)/absensi_mahasiswa?clientFoundRows=true",
 	)
 
 	if err != nil {
