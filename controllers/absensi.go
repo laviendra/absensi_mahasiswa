@@ -301,31 +301,34 @@ func AbsensiPulang(c *gin.Context) {
 		"jam_pulang": jamPulang,
 	})
 
-
 }
 
+// FilterAbsensi menampilkan absensi PER TANGGAL untuk SEMUA mahasiswa
+// (bukan cuma yang sudah absen), sehingga tampilannya jadi satu tabel
+// per hari seperti aplikasi absensi pada umumnya.
+// Kalau ?tanggal tidak dikirim, otomatis pakai tanggal hari ini.
 func FilterAbsensi(c *gin.Context) {
 
 	tanggal := c.Query("tanggal")
 
 	if tanggal == "" {
-		c.JSON(400, gin.H{
-			"message": "Tanggal harus diisi",
-		})
-		return
+		tanggal = time.Now().Format("2006-01-02")
 	}
 
 	rows, err := database.DB.Query(
 		`
-		SELECT 
-			id,
-			mahasiswa_id,
-			tanggal,
-			jam_masuk,
-			jam_pulang,
-			status
-		FROM absensi
-		WHERE tanggal = ?
+		SELECT
+			a.id,
+			m.id,
+			m.nama,
+			a.jam_masuk,
+			a.jam_pulang,
+			a.status_kehadiran
+		FROM mahasiswa m
+		LEFT JOIN absensi a
+		ON m.id = a.mahasiswa_id
+		AND a.tanggal = ?
+		ORDER BY m.nama ASC
 		`,
 		tanggal,
 	)
@@ -339,30 +342,55 @@ func FilterAbsensi(c *gin.Context) {
 
 	defer rows.Close()
 
-	var absensi []models.Absensi
+	var data []models.AbsensiHarian
 
 	for rows.Next() {
 
-		var a models.Absensi
+		var d models.AbsensiHarian
+
+		var absensiID sql.NullInt64
+		var jamMasuk sql.NullString
+		var jamPulang sql.NullString
+		var status sql.NullString
 
 		err := rows.Scan(
-			&a.ID,
-			&a.MahasiswaID,
-			&a.Tanggal,
-			&a.JamMasuk,
-			&a.JamPulang,
-			&a.Status,
+			&absensiID,
+			&d.MahasiswaID,
+			&d.Nama,
+			&jamMasuk,
+			&jamPulang,
+			&status,
 		)
 
 		if err != nil {
 			continue
 		}
 
-		absensi = append(absensi, a)
+		if absensiID.Valid {
+			id := int(absensiID.Int64)
+			d.AbsensiID = &id
+		}
+
+		if jamMasuk.Valid {
+			d.JamMasuk = jamMasuk.String
+		}
+
+		if jamPulang.Valid {
+			d.JamPulang = jamPulang.String
+		}
+
+		if status.Valid {
+			d.Status = status.String
+		} else {
+			d.Status = "Belum Absen"
+		}
+
+		data = append(data, d)
 	}
 
 	c.JSON(200, gin.H{
-		"data": absensi,
+		"tanggal": tanggal,
+		"data":    data,
 	})
 }
 
@@ -406,10 +434,9 @@ func TidakHadir() {
 		return
 	}
 
-
 	for rows.Next() {
 
-	err = tx.Commit()
+		err = tx.Commit()
 
 		if err != nil {
 			tx.Rollback()

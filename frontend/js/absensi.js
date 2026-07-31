@@ -4,37 +4,14 @@ if (!token) {
     window.location.href = "index.html";
 }
 
-fetch("http://localhost:8080/mahasiswa",{
+const inputTanggal = document.getElementById("tanggalFilter");
 
-headers:{
-"Authorization":"Bearer "+token
-}
+// default tanggal = hari ini
+const hariIni = new Date().toISOString().slice(0, 10);
+inputTanggal.value = hariIni;
 
-})
-
-.then(response=>response.json())
-
-.then(data=>{
-
-let option="";
-
-data.forEach(mhs=>{
-
-option+=`
-<option value="${mhs.id}">
-${mhs.nama}
-</option>
-`;
-
-});
-
-document.getElementById("mahasiswa").innerHTML=option;
-
-});
-
-fetch("http://localhost:8080/absensi", {
-
-    method: "GET",
+// isi dropdown mahasiswa (dipakai buat tombol Absen Masuk)
+fetch("http://localhost:8080/mahasiswa", {
 
     headers: {
         "Authorization": "Bearer " + token
@@ -46,83 +23,130 @@ fetch("http://localhost:8080/absensi", {
 
 .then(data => {
 
-    let tabel = "";
+    let option = "";
 
-    data.forEach((item, index) => {
+    data.forEach(mhs => {
 
-        let tombol = "-";
-
-        if(item.jam_pulang == ""){
-
-            tombol = `
-            <button
-                class="btn btn-warning btn-sm"
-                onclick="absenPulang(${item.id})">
-                Pulang
-            </button>
-            `;
-        }
-
-        tabel += `
-
-        <tr>
-
-            <td>${index + 1}</td>
-            <td>${item.nama}</td>
-            <td>${item.tanggal}</td>
-            <td>${item.jam_masuk}</td>
-            <td>${item.jam_pulang}</td>
-            <td>${item.status}</td>
-            <td>${tombol}</td>
-
-        </tr>
-
+        option += `
+        <option value="${mhs.id}">
+        ${mhs.nama}
+        </option>
         `;
 
     });
 
-    document.getElementById("dataAbsensi").innerHTML = tabel;
+    document.getElementById("mahasiswa").innerHTML = option;
 
 });
 
-function absenMasuk(){
+function loadAbsensi(tanggal) {
 
-let id=document.getElementById("mahasiswa").value;
+    fetch("http://localhost:8080/absensi/filter?tanggal=" + tanggal, {
 
-fetch("http://localhost:8080/absensi/masuk",{
+        headers: {
+            "Authorization": "Bearer " + token
+        }
 
-method:"POST",
+    })
 
-headers:{
-"Content-Type":"application/json",
-"Authorization":"Bearer "+token
-},
+    .then(response => response.json())
 
-body:JSON.stringify({
+    .then(hasil => {
 
-mahasiswa_id:Number(id)
+        let data = hasil.data || [];
 
-})
+        let tabel = "";
 
-})
+        data.forEach((item, index) => {
 
-.then(response=>response.json())
+            let tombol = "-";
 
-.then(data=>{
+            if (item.jam_masuk && !item.jam_pulang) {
 
-alert(data.message);
+                tombol = `
+                <button
+                    class="btn btn-warning btn-sm"
+                    onclick="absenPulang(${item.absensi_id})">
+                    Pulang
+                </button>
+                `;
+            }
 
-location.reload();
+            let warna = "secondary";
 
-});
+            if (item.status_kehadiran === "Hadir") warna = "success";
+            if (item.status_kehadiran === "Terlambat") warna = "warning";
+            if (item.status_kehadiran === "Tidak Hadir") warna = "danger";
+
+            tabel += `
+
+            <tr>
+
+                <td>${index + 1}</td>
+                <td>${item.nama}</td>
+                <td>${item.jam_masuk || "-"}</td>
+                <td>${item.jam_pulang || "-"}</td>
+                <td><span class="badge bg-${warna}">${item.status_kehadiran}</span></td>
+                <td>${tombol}</td>
+
+            </tr>
+
+            `;
+
+        });
+
+        document.getElementById("dataAbsensi").innerHTML = tabel;
+
+    });
 
 }
 
-function absenPulang(id){
+// load data untuk tanggal hari ini saat halaman dibuka
+loadAbsensi(inputTanggal.value);
+
+// reload tabel setiap kali tanggal diganti
+inputTanggal.addEventListener("change", () => {
+    loadAbsensi(inputTanggal.value);
+});
+
+function absenMasuk() {
+
+    let id = document.getElementById("mahasiswa").value;
+
+    fetch("http://localhost:8080/absensi/masuk", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+
+        body: JSON.stringify({
+
+            mahasiswa_id: Number(id)
+
+        })
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        alert(data.message);
+
+        loadAbsensi(inputTanggal.value);
+
+    });
+
+}
+
+function absenPulang(id) {
 
     const konfirmasi = confirm("Yakin ingin melakukan absensi pulang?");
 
-    if(!konfirmasi){
+    if (!konfirmasi) {
         return;
     }
 
@@ -130,8 +154,8 @@ function absenPulang(id){
 
         method: "PUT",
 
-        headers:{
-            "Authorization":"Bearer " + token
+        headers: {
+            "Authorization": "Bearer " + token
         }
 
     })
@@ -142,8 +166,8 @@ function absenPulang(id){
 
         alert(data.message);
 
-        if(data.message === "Absensi pulang berhasil"){
-            location.reload();
+        if (data.message === "Absensi pulang berhasil") {
+            loadAbsensi(inputTanggal.value);
         }
 
     })

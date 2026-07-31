@@ -38,11 +38,24 @@ Mahasiswa
 
 <div class="container mt-4">
 
-<h2>Data Absensi</h2>
+<h2>Data Absensi Harian</h2>
 
-<div class="row mb-3">
+<div class="row mb-3 align-items-end">
 
-<div class="col-md-5">
+<div class="col-md-3">
+
+<label class="form-label">Tanggal</label>
+
+<input
+id="tanggalFilter"
+type="date"
+class="form-control">
+
+</div>
+
+<div class="col-md-4">
+
+<label class="form-label">Mahasiswa</label>
 
 <select
 id="mahasiswa"
@@ -55,7 +68,7 @@ class="form-select">
 <div class="col-md-3">
 
 <button
-class="btn btn-success"
+class="btn btn-success w-100"
 onclick="absenMasuk()">
 
 Absen Masuk
@@ -74,7 +87,6 @@ Absen Masuk
 
 <th>No</th>
 <th>Nama</th>
-<th>Tanggal</th>
 <th>Jam Masuk</th>
 <th>Jam Pulang</th>
 <th>Status</th>
