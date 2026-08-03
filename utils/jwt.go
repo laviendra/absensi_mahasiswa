@@ -21,6 +21,21 @@ func GenerateToken(username string) (string, error) {
 	return token.SignedString(secretKey)
 }
 
+// GenerateTokenDosen dipakai buat login dosen, bedanya dari token admin
+// ada claim "role":"dosen" dan "dosen_id" biar middleware bisa bedain.
+func GenerateTokenDosen(dosenID int, username string) (string, error) {
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"role":     "dosen",
+			"dosen_id": dosenID,
+			"username": username,
+			"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+	return token.SignedString(secretKey)
+}
+
 
 func ValidateToken(tokenString string) (*jwt.Token, error) {
 

@@ -15,9 +15,9 @@ func Dashboard(c *gin.Context) {
 
 	var dashboard models.Dashboard
 
-	//total mahasiswa
+	//total mahasiswa aktif
 	err := database.DB.QueryRow(
-		`SELECT COUNT(*) FROM mahasiswa`,
+		`SELECT COUNT(*) FROM mahasiswa WHERE status = 'aktif'`,
 	).Scan(&dashboard.TotalMahasiswa)
 
 	if err != nil {
@@ -51,9 +51,11 @@ func Dashboard(c *gin.Context) {
 		return
 	}
 
-	//total belum absen hari ini
+	//total belum absen hari ini (mahasiswa aktif aja)
 	err = database.DB.QueryRow(
-		`SELECT COUNT(*) FROM mahasiswa WHERE id NOT IN (SELECT DISTINCT mahasiswa_id FROM absensi WHERE tanggal = CURDATE())`,
+		`SELECT COUNT(*) FROM mahasiswa
+		WHERE status = 'aktif'
+		AND id NOT IN (SELECT DISTINCT mahasiswa_id FROM absensi WHERE tanggal = CURDATE())`,
 	).Scan(&dashboard.BelumAbsen)
 
 	if err != nil {
@@ -166,7 +168,6 @@ func GetAbsensi(c *gin.Context) {
 			m.nama,
 			a.tanggal,
 			a.jam_masuk,
-			a.jam_pulang,
 			a.status_kehadiran
 		FROM absensi a
 		JOIN mahasiswa m
@@ -190,14 +191,12 @@ func GetAbsensi(c *gin.Context) {
 		var absen models.AbsensiResponse
 
 		var jamMasuk sql.NullString
-		var jamPulang sql.NullString
 
 		err := rows.Scan(
 			&absen.ID,
 			&absen.Nama,
 			&absen.Tanggal,
 			&jamMasuk,
-			&jamPulang,
 			&absen.Status,
 		)
 
@@ -212,99 +211,13 @@ func GetAbsensi(c *gin.Context) {
 			absen.JamMasuk = jamMasuk.String
 		}
 
-		if jamPulang.Valid {
-			absen.JamPulang = jamPulang.String
-		}
-
 		data = append(data, absen)
 	}
 
 	c.JSON(http.StatusOK, data)
 }
 
-func AbsensiPulang(c *gin.Context) {
-	var statusKehadiran string
-
-	id := c.Param("id")
-
-	err := database.DB.QueryRow(
-		`SELECT status_kehadiran
-		FROM absensi
-		WHERE id = ?`,
-		id,
-	).Scan(&statusKehadiran)
-
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Data absensi tidak ditemukan",
-		})
-		return
-	}
-
-	if statusKehadiran == "Tidak Hadir" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Mahasiswa tidak hadir, tidak dapat melakukan absensi pulang",
-		})
-		return
-	}
-
-	var jamPulangDB sql.NullString
-
-	err = database.DB.QueryRow(
-		`SELECT jam_pulang
-		FROM absensi
-		WHERE id = ?`,
-		id,
-	).Scan(&jamPulangDB)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	if jamPulangDB.Valid {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "Mahasiswa sudah melakukan absensi pulang",
-		})
-		return
-	}
-
-	jamPulang := time.Now().Format("15:04:05")
-	result, err := database.DB.Exec(
-		`UPDATE absensi
-		SET jam_pulang = ?, status = 'Pulang'
-		WHERE id = ?`,
-		jamPulang,
-		id,
-	)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	rowAffected, _ := result.RowsAffected()
-
-	if rowAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Absensi tidak ditemukan",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":    "Absensi pulang berhasil",
-		"jam_pulang": jamPulang,
-	})
-
-
-}
-
-// FilterAbsensi menampilkan absensi PER TANGGAL untuk SEMUA mahasiswa
+// FilterAbsensi menampilkan absensi PER TANGGAL untuk SEMUA mahasiswa AKTIF
 // (bukan cuma yang sudah absen), sehingga tampilannya jadi satu tabel
 // per hari seperti aplikasi absensi pada umumnya.
 // Kalau ?tanggal tidak dikirim, otomatis pakai tanggal hari ini.
@@ -323,12 +236,12 @@ func FilterAbsensi(c *gin.Context) {
 			m.id,
 			m.nama,
 			a.jam_masuk,
-			a.jam_pulang,
 			a.status_kehadiran
 		FROM mahasiswa m
 		LEFT JOIN absensi a
 		ON m.id = a.mahasiswa_id
 		AND a.tanggal = ?
+		WHERE m.status = 'aktif'
 		ORDER BY m.nama ASC
 		`,
 		tanggal,
@@ -351,7 +264,6 @@ func FilterAbsensi(c *gin.Context) {
 
 		var absensiID sql.NullInt64
 		var jamMasuk sql.NullString
-		var jamPulang sql.NullString
 		var status sql.NullString
 
 		err := rows.Scan(
@@ -359,7 +271,6 @@ func FilterAbsensi(c *gin.Context) {
 			&d.MahasiswaID,
 			&d.Nama,
 			&jamMasuk,
-			&jamPulang,
 			&status,
 		)
 
@@ -374,10 +285,6 @@ func FilterAbsensi(c *gin.Context) {
 
 		if jamMasuk.Valid {
 			d.JamMasuk = jamMasuk.String
-		}
-
-		if jamPulang.Valid {
-			d.JamPulang = jamPulang.String
 		}
 
 		if status.Valid {
@@ -416,7 +323,8 @@ func TidakHadir() {
 
 	rows, err := database.DB.Query(`
 		SELECT id FROM mahasiswa
-		WHERE id NOT IN (
+		WHERE status = 'aktif'
+		AND id NOT IN (
 			SELECT mahasiswa_id 
 			FROM absensi
 			WHERE tanggal = ?
