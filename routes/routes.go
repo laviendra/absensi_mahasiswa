@@ -65,18 +65,6 @@ func SetupRoutes(r *gin.Engine) {
 	protected.DELETE("/jadwal/:id", controllers.DeleteJadwal)
 
 
-	// Absensi harian (sistem lama, absen sendiri per hari)
-	protected.GET("/absensi", controllers.GetAbsensi)
-	protected.GET("/absensi/filter", controllers.FilterAbsensi)
-	protected.POST("/absensi/masuk", controllers.AbsensiMasuk)
-
-
-	// Rekap & export
-	protected.GET("/rekap", controllers.RekapBulanan())
-	protected.GET("/rekap/pdf", controllers.ExportPDF)
-	protected.GET("/rekap/excel", controllers.ExportExcel)
-
-
 	// Rekap absensi kelas (pantau & koreksi hasil absen dosen)
 	protected.GET("/rekap-kelas/pertemuan", controllers.GetPertemuanAdmin)
 	protected.GET("/rekap-kelas/pertemuan/:id/absensi", controllers.GetAbsensiPertemuanAdmin)

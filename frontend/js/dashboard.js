@@ -38,16 +38,16 @@ fetch("http://localhost:8080/dashboard", {
     data.total_mahasiswa;
 
 
-    document.getElementById("hadir").innerHTML =
-    data.hadir_hari_ini;
+    document.getElementById("totalDosen").innerHTML =
+    data.total_dosen;
 
 
-    document.getElementById("terlambat").innerHTML =
-    data.terlambat;
+    document.getElementById("totalKelas").innerHTML =
+    data.total_kelas;
 
 
-    document.getElementById("belumAbsen").innerHTML =
-    data.belum_absen;
+    document.getElementById("pertemuanHariIni").innerHTML =
+    data.pertemuan_hari_ini;
 
 
 });
