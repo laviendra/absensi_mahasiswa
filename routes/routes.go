@@ -77,6 +77,12 @@ func SetupRoutes(r *gin.Engine) {
 	protected.GET("/rekap/excel", controllers.ExportExcel)
 
 
+	// Rekap absensi kelas (pantau & koreksi hasil absen dosen)
+	protected.GET("/rekap-kelas/pertemuan", controllers.GetPertemuanAdmin)
+	protected.GET("/rekap-kelas/pertemuan/:id/absensi", controllers.GetAbsensiPertemuanAdmin)
+	protected.PUT("/rekap-kelas/pertemuan/:id/absensi", controllers.UpdateAbsensiKelasAdmin)
+
+
 	// ================= ROUTE DOSEN =================
 	dosenRoute := r.Group("/dosen-area")
 	dosenRoute.Use(middleware.DosenAuthMiddleware())
