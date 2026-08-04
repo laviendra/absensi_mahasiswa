@@ -32,30 +32,17 @@ function loadAbsensi(tanggal) {
 
             let aksi = "-";
 
-            // absen masuk/pulang cuma boleh dilakukan untuk tanggal hari ini,
+            // absen masuk cuma boleh dilakukan untuk tanggal hari ini,
             // data tanggal lain sifatnya cuma riwayat (read only)
-            if (tanggal === hariIni) {
+            if (tanggal === hariIni && !item.absensi_id) {
 
-                if (!item.jam_masuk) {
-
-                    aksi = `
-                    <button
-                        class="btn btn-success btn-sm"
-                        onclick="absenMasuk(${item.mahasiswa_id})">
-                        Masuk
-                    </button>
-                    `;
-
-                } else if (!item.jam_pulang) {
-
-                    aksi = `
-                    <button
-                        class="btn btn-warning btn-sm"
-                        onclick="absenPulang(${item.absensi_id})">
-                        Pulang
-                    </button>
-                    `;
-                }
+                aksi = `
+                <button
+                    class="btn btn-success btn-sm"
+                    onclick="absenMasuk(${item.mahasiswa_id})">
+                    Masuk
+                </button>
+                `;
             }
 
             let warna = "secondary";
@@ -71,7 +58,6 @@ function loadAbsensi(tanggal) {
                 <td>${index + 1}</td>
                 <td>${item.nama}</td>
                 <td>${item.jam_masuk || "-"}</td>
-                <td>${item.jam_pulang || "-"}</td>
                 <td><span class="badge bg-${warna}">${item.status_kehadiran}</span></td>
                 <td>${aksi}</td>
 
@@ -118,48 +104,9 @@ function absenMasuk(mahasiswaId) {
 
     .then(data => {
 
-        alert(data.message);
+        alert(data.message || data.error || "Terjadi kesalahan");
 
         loadAbsensi(inputTanggal.value);
-
-    });
-
-}
-
-function absenPulang(id) {
-
-    const konfirmasi = confirm("Yakin ingin melakukan absensi pulang?");
-
-    if (!konfirmasi) {
-        return;
-    }
-
-    fetch("http://localhost:8080/absensi/pulang/" + id, {
-
-        method: "PUT",
-
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-
-    })
-
-    .then(response => response.json())
-
-    .then(data => {
-
-        alert(data.message);
-
-        if (data.message === "Absensi pulang berhasil") {
-            loadAbsensi(inputTanggal.value);
-        }
-
-    })
-
-    .catch(error => {
-
-        console.log(error);
-        alert("Terjadi kesalahan.");
 
     });
 

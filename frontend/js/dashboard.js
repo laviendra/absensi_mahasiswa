@@ -8,6 +8,14 @@ if(!token){
 }
 
 
+document.getElementById("tanggalHariIni").innerText =
+    new Date().toLocaleDateString("id-ID", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
+
 
 fetch("http://localhost:8080/dashboard", {
 
@@ -42,14 +50,4 @@ fetch("http://localhost:8080/dashboard", {
     data.belum_absen;
 
 
-})
-
-
-
-function logout(){
-
-    localStorage.removeItem("token");
-
-    window.location.href="index.html";
-
-}
+});

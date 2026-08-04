@@ -92,6 +92,8 @@ function loadMahasiswa(){
 
             <td>${index+1}</td>
 
+            <td>${mhs.nim || "-"}</td>
+
             <td>${mhs.nama}</td>
 
             <td>${mhs.nama_kelas || "-"}</td>
@@ -116,10 +118,89 @@ function loadMahasiswa(){
 
 loadKelasOptions();
 loadMahasiswa();
+loadKelasCard();
+
+function loadKelasCard() {
+
+    fetch("http://localhost:8080/kelas", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        let html = "";
+
+        (data || []).forEach(k => {
+
+            html += `
+            <div class="col-md-3">
+                <div class="card shadow-sm" role="button" onclick="tampilkanMahasiswaKelas(${k.id}, '${k.nama}')">
+                    <div class="card-body text-center">
+                        <h5 class="mb-1">${k.nama}</h5>
+                        <p class="text-muted small mb-0">${k.nama_jurusan}</p>
+                    </div>
+                </div>
+            </div>
+            `;
+
+        });
+
+        document.getElementById("daftarKelasCard").innerHTML =
+            html || `<p class="text-muted">Belum ada data kelas. Tambahkan dulu di halaman Data Master.</p>`;
+
+    });
+
+}
+
+function tampilkanMahasiswaKelas(kelasId, namaKelas) {
+
+    document.getElementById("daftarKelasCard").classList.add("d-none");
+    document.getElementById("detailKelas").classList.remove("d-none");
+    document.getElementById("judulDetailKelas").innerText = "Mahasiswa Kelas " + namaKelas;
+
+    fetch("http://localhost:8080/mahasiswa?kelas_id=" + kelasId, {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        let tabel = "";
+
+        (data || []).forEach((mhs, index) => {
+            tabel += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${mhs.nim || "-"}</td>
+                <td>${mhs.nama}</td>
+                <td><span class="badge bg-success">${mhs.status}</span></td>
+            </tr>
+            `;
+        });
+
+        document.getElementById("dataMahasiswaKelas").innerHTML =
+            tabel || `<tr><td colspan="4" class="text-center text-muted">Belum ada mahasiswa di kelas ini</td></tr>`;
+
+    });
+
+}
+
+function kembaliKeDaftarKelas() {
+    document.getElementById("detailKelas").classList.add("d-none");
+    document.getElementById("daftarKelasCard").classList.remove("d-none");
+}
 
 function bukaModalTambah(){
 
     document.getElementById("idMahasiswa").value = "";
+    document.getElementById("nim").value = "";
     document.getElementById("nama").value = "";
     document.getElementById("kelas").value = "";
 
@@ -130,8 +211,14 @@ function bukaModalTambah(){
 function simpanMahasiswa(){
 
     let id = document.getElementById("idMahasiswa").value;
+    let nim = document.getElementById("nim").value;
     let nama = document.getElementById("nama").value;
     let kelasId = document.getElementById("kelas").value;
+
+    if(nim === ""){
+        alert("NIM wajib diisi");
+        return;
+    }
 
     if(kelasId === ""){
         alert("Kelas wajib dipilih");
@@ -164,6 +251,7 @@ function simpanMahasiswa(){
 
         body: JSON.stringify({
 
+            nim: nim,
             nama: nama,
             kelas_id: Number(kelasId)
 
@@ -212,6 +300,8 @@ function editMahasiswa(id){
 
 
         document.getElementById("idMahasiswa").value = mhs.id;
+
+        document.getElementById("nim").value = mhs.nim || "";
 
         document.getElementById("nama").value = mhs.nama;
 

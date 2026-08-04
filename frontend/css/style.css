@@ -10,3 +10,49 @@ body {
     margin-top: 100px;
 
 }
+
+
+.sidebar {
+
+    width: 230px;
+    min-height: 100vh;
+    background: #1e293b;
+
+}
+
+.sidebar .brand {
+
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: .02em;
+
+}
+
+.sidebar .nav-link {
+
+    color: #cbd5e1;
+    border-radius: 8px;
+    font-size: .95rem;
+
+}
+
+.sidebar .nav-link:hover {
+
+    background: #334155;
+    color: #fff;
+
+}
+
+.sidebar .nav-link.active {
+
+    background: #2563eb;
+    color: #fff;
+
+}
+
+.main-content {
+
+    flex: 1;
+    min-height: 100vh;
+
+}

@@ -17,20 +17,30 @@ func GetMahasiswa(c *gin.Context) {
 
 	statusFilter := c.Query("status")
 
+	kelasFilter := c.Query("kelas_id")
+
 	query := `
-		SELECT m.id, m.nama, m.kelas_id, COALESCE(k.nama, ''), COALESCE(j.nama, ''), m.status
+		SELECT m.id, m.nama, COALESCE(m.nim, ''), m.kelas_id, COALESCE(k.nama, ''), COALESCE(j.nama, ''), m.status
 		FROM mahasiswa m
 		LEFT JOIN kelas k ON k.id = m.kelas_id
 		LEFT JOIN jurusan j ON j.id = k.jurusan_id
+		WHERE 1=1
 	`
 
+	var args []interface{}
+
 	if statusFilter != "semua" {
-		query += " WHERE m.status = 'aktif'"
+		query += " AND m.status = 'aktif'"
+	}
+
+	if kelasFilter != "" {
+		query += " AND m.kelas_id = ?"
+		args = append(args, kelasFilter)
 	}
 
 	query += " ORDER BY m.nama ASC"
 
-	rows, err := database.DB.Query(query)
+	rows, err := database.DB.Query(query, args...)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -51,6 +61,7 @@ func GetMahasiswa(c *gin.Context) {
 		rows.Scan(
 			&mhs.ID,
 			&mhs.Nama,
+			&mhs.Nim,
 			&kelasID,
 			&mhs.NamaKelas,
 			&mhs.NamaJurusan,
@@ -81,22 +92,23 @@ func CreateMahasiswa(c *gin.Context) {
 		return
 	}
 
-	if mhs.Nama == "" || mhs.KelasID == nil {
+	if mhs.Nama == "" || mhs.Nim == "" || mhs.KelasID == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama dan kelas wajib diisi",
+			"error": "Nama, NIM, dan kelas wajib diisi",
 		})
 		return
 	}
 
 	result, err := database.DB.Exec(
-		"INSERT INTO mahasiswa (nama, kelas_id, status) VALUES (?, ?, 'aktif')",
+		"INSERT INTO mahasiswa (nama, nim, kelas_id, status) VALUES (?, ?, ?, 'aktif')",
 		mhs.Nama,
+		mhs.Nim,
 		*mhs.KelasID,
 	)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": fkErrorOr(err, "NIM sudah dipakai mahasiswa lain"),
 		})
 		return
 	}
@@ -131,23 +143,24 @@ func UpdateMahasiswa(c *gin.Context) {
 		return
 	}
 
-	if mhs.Nama == "" || mhs.KelasID == nil {
+	if mhs.Nama == "" || mhs.Nim == "" || mhs.KelasID == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama dan kelas wajib diisi",
+			"error": "Nama, NIM, dan kelas wajib diisi",
 		})
 		return
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE mahasiswa SET nama = ?, kelas_id = ? WHERE id = ?",
+		"UPDATE mahasiswa SET nama = ?, nim = ?, kelas_id = ? WHERE id = ?",
 		mhs.Nama,
+		mhs.Nim,
 		*mhs.KelasID,
 		id,
 	)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": fkErrorOr(err, "NIM sudah dipakai mahasiswa lain"),
 		})
 		return
 	}

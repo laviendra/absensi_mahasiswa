@@ -8,93 +8,149 @@
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
     rel="stylesheet">
 
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
 
 
 <body>
 
 
-<nav class="navbar navbar-dark bg-dark">
+<div class="d-flex">
 
-<div class="container">
+    <div class="sidebar text-white p-3 d-flex flex-column">
 
-<a class="navbar-brand">
-Absensi Mahasiswa
-</a>
+        <div class="brand mb-4">Absensi Mahasiswa</div>
 
-<a href="dashboard.html" class="btn btn-secondary">
-Dashboard
-</a>
+        <ul class="nav nav-pills flex-column gap-1 flex-grow-1">
 
-<a href="data-master.html" class="btn btn-primary">
-Data Master
-</a>
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="mahasiswa.html" class="nav-link active">Mahasiswa</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="data-master.html" class="nav-link">Data Master</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="absensi.html" class="nav-link">Absensi</a>
+            </li>
+
+        </ul>
+
+        <button onclick="logout()" class="btn btn-outline-light btn-sm mt-3">Logout</button>
+
+    </div>
+
+
+    <div class="main-content p-4">
+
+
+        <h2>
+        Data Mahasiswa
+        </h2>
+
+        <ul class="nav nav-tabs" id="tabMahasiswa">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabSemua">Semua Mahasiswa</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerKelas">Per Kelas</button>
+            </li>
+        </ul>
+
+        <div class="tab-content bg-white border border-top-0 p-3">
+
+        <!-- TAB SEMUA MAHASISWA -->
+        <div class="tab-pane fade show active" id="tabSemua">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <button 
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#modalMahasiswa"
+        onclick="bukaModalTambah()">
+        + Tambah Mahasiswa
+        </button>
+
+        <div class="form-check">
+
+        <input
+        class="form-check-input"
+        type="checkbox"
+        id="tampilkanSemua"
+        onchange="loadMahasiswa()">
+
+        <label class="form-check-label" for="tampilkanSemua">
+        Tampilkan yang nonaktif juga
+        </label>
+
+        </div>
+
+        </div>
+
+        <table class="table table-bordered mt-3">
+
+
+        <thead class="table-dark">
+
+        <tr>
+
+        <th>No</th>
+        <th>NIM</th>
+        <th>Nama</th>
+        <th>Kelas</th>
+        <th>Jurusan</th>
+        <th>Status</th>
+        <th>Aksi</th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody id="dataMahasiswa">
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+        <!-- TAB PER KELAS -->
+        <div class="tab-pane fade" id="tabPerKelas">
+
+        <div id="daftarKelasCard" class="row g-3"></div>
+
+        <div id="detailKelas" class="d-none">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 id="judulDetailKelas" class="mb-0"></h5>
+                <button class="btn btn-secondary btn-sm" onclick="kembaliKeDaftarKelas()">Kembali ke Daftar Kelas</button>
+            </div>
+
+            <table class="table table-bordered">
+                <thead class="table-dark">
+                    <tr><th>No</th><th>NIM</th><th>Nama</th><th>Status</th></tr>
+                </thead>
+                <tbody id="dataMahasiswaKelas"></tbody>
+            </table>
+
+        </div>
+
+        </div>
+
+        </div>
+
+    </div>
 
 </div>
 
-</nav>
-
-
-
-<div class="container mt-4">
-
-
-<h2>
-Data Mahasiswa
-</h2>
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-
-<button 
-class="btn btn-primary"
-data-bs-toggle="modal"
-data-bs-target="#modalMahasiswa"
-onclick="bukaModalTambah()">
-+ Tambah Mahasiswa
-</button>
-
-<div class="form-check">
-
-<input
-class="form-check-input"
-type="checkbox"
-id="tampilkanSemua"
-onchange="loadMahasiswa()">
-
-<label class="form-check-label" for="tampilkanSemua">
-Tampilkan yang nonaktif juga
-</label>
-
-</div>
-
-</div>
-
-<table class="table table-bordered mt-3">
-
-
-<thead class="table-dark">
-
-<tr>
-
-<th>No</th>
-<th>Nama</th>
-<th>Kelas</th>
-<th>Jurusan</th>
-<th>Status</th>
-<th>Aksi</th>
-
-</tr>
-
-</thead>
-
-
-<tbody id="dataMahasiswa">
-
-</tbody>
-
-</table>
-
-</div>
 
 <div class="modal fade" id="modalMahasiswa">
 
@@ -115,6 +171,11 @@ Tambah Mahasiswa
 <input 
 type="hidden"
 id="idMahasiswa">
+
+<input 
+id="nim"
+class="form-control mb-2"
+placeholder="NIM">
 
 <input 
 id="nama"
@@ -151,6 +212,7 @@ Simpan
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<script src="js/layout.js"></script>
 <script src="js/mahasiswa.js"></script>
 
 

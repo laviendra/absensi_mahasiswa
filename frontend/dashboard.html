@@ -12,150 +12,146 @@
 
 <body>
 
+<div class="d-flex">
 
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container">
+    <div class="sidebar text-white p-3 d-flex flex-column">
 
-        <span class="navbar-brand">
-            Absensi Mahasiswa
-        </span>
+        <div class="brand mb-4">Absensi Mahasiswa</div>
 
-        <div>
+        <ul class="nav nav-pills flex-column gap-1 flex-grow-1">
 
-            <a href="mahasiswa.html" class="btn btn-light me-2">
-                Mahasiswa
-            </a>
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+            </li>
 
-            <a href="data-master.html" class="btn btn-light me-2">
-                Data Master
-            </a>
+            <li class="nav-item">
+                <a href="mahasiswa.html" class="nav-link">Mahasiswa</a>
+            </li>
 
-            <a href="absensi.html" class="btn btn-primary me-2">
-                Absensi
-            </a>
+            <li class="nav-item">
+                <a href="data-master.html" class="nav-link">Data Master</a>
+            </li>
 
-            <button 
-                onclick="logout()"
-                class="btn btn-danger">
-                Logout
-            </button>
+            <li class="nav-item">
+                <a href="absensi.html" class="nav-link">Absensi</a>
+            </li>
 
-        </div>
+        </ul>
 
-    </div>
-</nav>
-
-
-
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h2 class="mb-0">
-            Dashboard
-        </h2>
-
-        <span id="tanggalHariIni" class="text-muted"></span>
+        <button onclick="logout()" class="btn btn-outline-light btn-sm mt-3">Logout</button>
 
     </div>
 
 
-    <div class="row g-3">
+    <div class="main-content p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <h2 class="mb-0">Dashboard</h2>
+
+            <span id="tanggalHariIni" class="text-muted"></span>
+
+        </div>
 
 
-        <div class="col-md-3">
+        <div class="row g-3">
 
-            <div class="card text-bg-primary shadow-sm h-100">
 
-                <div class="card-body text-center">
+            <div class="col-md-3">
 
-                    <h6 class="card-title text-uppercase mb-2">
-                        Total Mahasiswa
-                    </h6>
+                <div class="card text-bg-primary shadow-sm h-100">
 
-                    <h2 id="totalMahasiswa" class="mb-0">
-                        0
-                    </h2>
+                    <div class="card-body text-center">
+
+                        <h6 class="card-title text-uppercase mb-2">
+                            Total Mahasiswa
+                        </h6>
+
+                        <h2 id="totalMahasiswa" class="mb-0">
+                            0
+                        </h2>
+
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
 
 
+            <div class="col-md-3">
 
-        <div class="col-md-3">
+                <div class="card text-bg-success shadow-sm h-100">
 
-            <div class="card text-bg-success shadow-sm h-100">
+                    <div class="card-body text-center">
 
-                <div class="card-body text-center">
+                        <h6 class="card-title text-uppercase mb-2">
+                            Hadir Hari Ini
+                        </h6>
 
-                    <h6 class="card-title text-uppercase mb-2">
-                        Hadir Hari Ini
-                    </h6>
+                        <h2 id="hadir" class="mb-0">
+                            0
+                        </h2>
 
-                    <h2 id="hadir" class="mb-0">
-                        0
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="col-md-3">
-
-            <div class="card text-bg-warning shadow-sm h-100">
-
-                <div class="card-body text-center">
-
-                    <h6 class="card-title text-uppercase mb-2">
-                        Terlambat
-                    </h6>
-
-                    <h2 id="terlambat" class="mb-0">
-                        0
-                    </h2>
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
 
 
+            <div class="col-md-3">
 
-        <div class="col-md-3">
+                <div class="card text-bg-warning shadow-sm h-100">
 
-            <div class="card text-bg-danger shadow-sm h-100">
+                    <div class="card-body text-center">
 
-                <div class="card-body text-center">
+                        <h6 class="card-title text-uppercase mb-2">
+                            Terlambat
+                        </h6>
 
-                    <h6 class="card-title text-uppercase mb-2">
-                        Belum Absen
-                    </h6>
+                        <h2 id="terlambat" class="mb-0">
+                            0
+                        </h2>
 
-                    <h2 id="belumAbsen" class="mb-0">
-                        0
-                    </h2>
+                    </div>
 
                 </div>
 
             </div>
 
-        </div>
 
+
+            <div class="col-md-3">
+
+                <div class="card text-bg-danger shadow-sm h-100">
+
+                    <div class="card-body text-center">
+
+                        <h6 class="card-title text-uppercase mb-2">
+                            Belum Absen
+                        </h6>
+
+                        <h2 id="belumAbsen" class="mb-0">
+                            0
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </div>
 
     </div>
-
 
 </div>
 
 
+<script src="js/layout.js"></script>
 <script src="js/dashboard.js"></script>
 
 </body>
