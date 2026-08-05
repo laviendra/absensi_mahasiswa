@@ -1,13 +1,18 @@
 package main
 
 import (
+	"os"
+
 	"absensi-mahasiswa/database"
 	"absensi-mahasiswa/routes"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	godotenv.Load()
 
 	database.ConnectDB()
 
@@ -17,5 +22,11 @@ func main() {
 
 	routes.SetupRoutes(r)
 
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	r.Run(":" + port)
 }

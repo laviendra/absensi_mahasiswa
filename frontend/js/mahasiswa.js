@@ -6,7 +6,7 @@ if(!token){
 
 function loadJurusanOptions(){
 
-    fetch("http://localhost:8080/jurusan", {
+    fetch(API_BASE + "/jurusan", {
         headers:{
             "Authorization":"Bearer " + token
         }
@@ -41,7 +41,7 @@ function loadKelasByJurusan(preselectKelasId){
 
     kelasSelect.disabled = false;
 
-    fetch("http://localhost:8080/kelas?jurusan_id=" + jurusanId, {
+    fetch(API_BASE + "/kelas?jurusan_id=" + jurusanId, {
         headers:{
             "Authorization":"Bearer " + token
         }
@@ -70,7 +70,7 @@ function loadKelasByJurusan(preselectKelasId){
 function loadMahasiswa(){
 
     let tampilkanSemua = document.getElementById("tampilkanSemua").checked;
-    let url = "http://localhost:8080/mahasiswa";
+    let url = API_BASE + "/mahasiswa";
 
     if(tampilkanSemua){
         url += "?status=semua";
@@ -161,7 +161,7 @@ loadKelasCard();
 
 function loadKelasCard() {
 
-    fetch("http://localhost:8080/kelas", {
+    fetch(API_BASE + "/kelas", {
         headers: {
             "Authorization": "Bearer " + token
         }
@@ -201,7 +201,7 @@ function tampilkanMahasiswaKelas(kelasId, namaKelas) {
     document.getElementById("detailKelas").classList.remove("d-none");
     document.getElementById("judulDetailKelas").innerText = "Mahasiswa Kelas " + namaKelas;
 
-    fetch("http://localhost:8080/mahasiswa?kelas_id=" + kelasId, {
+    fetch(API_BASE + "/mahasiswa?kelas_id=" + kelasId, {
         headers: {
             "Authorization": "Bearer " + token
         }
@@ -270,13 +270,13 @@ function simpanMahasiswa(){
 
 
     let method = "POST";
-    let url = "http://localhost:8080/mahasiswa";
+    let url = API_BASE + "/mahasiswa";
 
 
     if(id != ""){
 
         method = "PUT";
-        url = "http://localhost:8080/mahasiswa/" + id;
+        url = API_BASE + "/mahasiswa/" + id;
 
     }
 
@@ -320,7 +320,7 @@ function editMahasiswa(id){
 
 
     fetch(
-        "http://localhost:8080/mahasiswa?status=semua",
+        API_BASE + "/mahasiswa?status=semua",
         {
             headers:{
                 "Authorization":"Bearer " + token
@@ -374,7 +374,7 @@ function nonaktifkanMahasiswa(id){
 
 
         fetch(
-            "http://localhost:8080/mahasiswa/" + id,
+            API_BASE + "/mahasiswa/" + id,
             {
                 method:"DELETE",
 
@@ -406,7 +406,7 @@ function aktifkanMahasiswa(id){
     let token = localStorage.getItem("token");
 
     fetch(
-        "http://localhost:8080/mahasiswa/" + id + "/aktifkan",
+        API_BASE + "/mahasiswa/" + id + "/aktifkan",
         {
             method:"PUT",
 

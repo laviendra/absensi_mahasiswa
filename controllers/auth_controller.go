@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 
 	"absensi-mahasiswa/database"
 	"absensi-mahasiswa/models"
@@ -30,13 +31,12 @@ func Login(c *gin.Context) {
 	query := `
 		SELECT id_admin, username, password
 		FROM admin
-		WHERE username = ? AND password = ?
+		WHERE username = ?
 	`
 
 	err = database.DB.QueryRow(
 		query,
 		admin.Username,
-		admin.Password,
 	).Scan(
 		&data.ID,
 		&data.Username,
@@ -45,6 +45,14 @@ func Login(c *gin.Context) {
 
 
 	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"message": "Username atau password salah",
+		})
+		return
+	}
+
+
+	if err := bcrypt.CompareHashAndPassword([]byte(data.Password), []byte(admin.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"message": "Username atau password salah",
 		})

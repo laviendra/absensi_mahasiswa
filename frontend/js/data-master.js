@@ -4,7 +4,7 @@ if (!token) {
     window.location.href = "index.html";
 }
 
-const API = "http://localhost:8080";
+const API = API_BASE;
 
 let daftarDosenCache = [];
 let daftarMatkulCache = [];

@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -13,9 +14,15 @@ func ConnectDB() {
 
 	var err error
 
+	dsn := os.Getenv("DB_DSN")
+
+	if dsn == "" {
+		dsn = "root:@tcp(localhost:3306)/absensi_mahasiswa?clientFoundRows=true"
+	}
+
 	DB, err = sql.Open(
 		"mysql",
-		"root:@tcp(localhost:3306)/absensi_mahasiswa?clientFoundRows=true",
+		dsn,
 	)
 
 	if err != nil {

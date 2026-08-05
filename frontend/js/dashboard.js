@@ -17,7 +17,7 @@ document.getElementById("tanggalHariIni").innerText =
     });
 
 
-fetch("http://localhost:8080/dashboard", {
+fetch(API_BASE + "/dashboard", {
 
     method:"GET",
 

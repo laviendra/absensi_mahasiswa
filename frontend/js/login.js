@@ -4,7 +4,7 @@ function login(){
     let password = document.getElementById("password").value;
 
 
-    fetch("http://localhost:8080/login", {
+    fetch(API_BASE + "/login", {
 
         method: "POST",
 

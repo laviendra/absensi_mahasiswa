@@ -10,7 +10,7 @@ function loadPertemuan() {
 
     let tanggal = document.getElementById("tanggalFilter").value;
 
-    let url = "http://localhost:8080/rekap-kelas/pertemuan";
+    let url = API_BASE + "/rekap-kelas/pertemuan";
 
     if (tanggal) {
         url += "?tanggal=" + tanggal;
@@ -78,7 +78,7 @@ function lihatDetail(pertemuanId, matkul, kelas, tanggal) {
     document.getElementById("judulDetail").innerText =
         matkul + " - " + kelas + " (" + tanggal + ")";
 
-    fetch("http://localhost:8080/rekap-kelas/pertemuan/" + pertemuanId + "/absensi", {
+    fetch(API_BASE + "/rekap-kelas/pertemuan/" + pertemuanId + "/absensi", {
         headers: { "Authorization": "Bearer " + token }
     })
 
@@ -119,7 +119,7 @@ function lihatDetail(pertemuanId, matkul, kelas, tanggal) {
 
 function koreksiAbsen(mahasiswaId, status) {
 
-    fetch("http://localhost:8080/rekap-kelas/pertemuan/" + pertemuanDilihat + "/absensi", {
+    fetch(API_BASE + "/rekap-kelas/pertemuan/" + pertemuanDilihat + "/absensi", {
 
         method: "PUT",
 

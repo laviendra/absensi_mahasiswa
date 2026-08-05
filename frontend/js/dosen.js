@@ -10,7 +10,7 @@ function loginDosen() {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    fetch("http://localhost:8080/login-dosen", {
+    fetch(API_BASE + "/login-dosen", {
 
         method: "POST",
 
@@ -66,7 +66,7 @@ function tampilkanJadwal() {
     document.getElementById("areaAbsensi").classList.add("d-none");
     document.getElementById("btnLogout").classList.remove("d-none");
 
-    fetch("http://localhost:8080/dosen-area/jadwal-saya", {
+    fetch(API_BASE + "/dosen-area/jadwal-saya", {
 
         headers: {
             "Authorization": "Bearer " + dosenToken
@@ -109,7 +109,7 @@ function tampilkanJadwal() {
 
 function ambilAbsen(jadwalId) {
 
-    fetch("http://localhost:8080/dosen-area/jadwal/" + jadwalId + "/buka-pertemuan", {
+    fetch(API_BASE + "/dosen-area/jadwal/" + jadwalId + "/buka-pertemuan", {
 
         method: "POST",
 
@@ -141,7 +141,7 @@ function loadAbsensiKelas() {
     document.getElementById("areaJadwal").classList.add("d-none");
     document.getElementById("areaAbsensi").classList.remove("d-none");
 
-    fetch("http://localhost:8080/dosen-area/pertemuan/" + pertemuanAktif + "/absensi", {
+    fetch(API_BASE + "/dosen-area/pertemuan/" + pertemuanAktif + "/absensi", {
 
         headers: {
             "Authorization": "Bearer " + dosenToken
@@ -190,7 +190,7 @@ function loadAbsensiKelas() {
 
 function simpanAbsen(mahasiswaId, status) {
 
-    fetch("http://localhost:8080/dosen-area/pertemuan/" + pertemuanAktif + "/absensi", {
+    fetch(API_BASE + "/dosen-area/pertemuan/" + pertemuanAktif + "/absensi", {
 
         method: "POST",
 
@@ -228,7 +228,7 @@ function tutupPertemuan() {
         return;
     }
 
-    fetch("http://localhost:8080/dosen-area/pertemuan/" + pertemuanAktif + "/tutup", {
+    fetch(API_BASE + "/dosen-area/pertemuan/" + pertemuanAktif + "/tutup", {
 
         method: "PUT",
 

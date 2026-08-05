@@ -2,12 +2,22 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte("rahasia_absensi")
+func getSecretKey() []byte {
+
+	secret := os.Getenv("JWT_SECRET")
+
+	if secret == "" {
+		secret = "rahasia_absensi"
+	}
+
+	return []byte(secret)
+}
 
 
 func GenerateToken(username string) (string, error) {
@@ -18,7 +28,7 @@ func GenerateToken(username string) (string, error) {
 			"exp": time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-	return token.SignedString(secretKey)
+	return token.SignedString(getSecretKey())
 }
 
 // GenerateTokenDosen dipakai buat login dosen, bedanya dari token admin
@@ -33,7 +43,7 @@ func GenerateTokenDosen(dosenID int, username string) (string, error) {
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-	return token.SignedString(secretKey)
+	return token.SignedString(getSecretKey())
 }
 
 
@@ -46,7 +56,7 @@ func ValidateToken(tokenString string) (*jwt.Token, error) {
 				return nil, errors.New("method tidak valid")
 			}
 
-			return secretKey, nil
+			return getSecretKey(), nil
 		})
 
 	return token, err
