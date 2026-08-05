@@ -11,6 +11,55 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// getMataKuliahIDsByDosen ambil daftar id mata kuliah yang diampu seorang dosen
+func getMataKuliahIDsByDosen(dosenID int) []int {
+
+	rows, err := database.DB.Query(
+		"SELECT mata_kuliah_id FROM dosen_mata_kuliah WHERE dosen_id = ?",
+		dosenID,
+	)
+
+	ids := []int{}
+
+	if err != nil {
+		return ids
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+
+	return ids
+}
+
+// simpanRelasiDosenMataKuliah sinkronkan relasi: hapus yang lama, insert yang baru
+func simpanRelasiDosenMataKuliah(dosenID int, mataKuliahIDs []int) error {
+
+	_, err := database.DB.Exec("DELETE FROM dosen_mata_kuliah WHERE dosen_id = ?", dosenID)
+
+	if err != nil {
+		return err
+	}
+
+	for _, mkID := range mataKuliahIDs {
+
+		_, err := database.DB.Exec(
+			"INSERT INTO dosen_mata_kuliah (dosen_id, mata_kuliah_id) VALUES (?, ?)",
+			dosenID, mkID,
+		)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // GetDosen TIDAK mengembalikan password (hash sekalipun) ke client
 func GetDosen(c *gin.Context) {
 
@@ -30,6 +79,8 @@ func GetDosen(c *gin.Context) {
 		var d models.Dosen
 
 		rows.Scan(&d.ID, &d.Nama, &d.Username)
+
+		d.MataKuliahIDs = getMataKuliahIDsByDosen(d.ID)
 
 		data = append(data, d)
 	}
@@ -69,6 +120,11 @@ func CreateDosen(c *gin.Context) {
 	}
 
 	id, _ := result.LastInsertId()
+
+	if err := simpanRelasiDosenMataKuliah(int(id), d.MataKuliahIDs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Dosen berhasil ditambahkan", "id": id})
 }
@@ -142,6 +198,11 @@ func UpdateDosen(c *gin.Context) {
 		return
 	}
 
+	if err := simpanRelasiDosenMataKuliah(id, d.MataKuliahIDs); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Dosen berhasil diperbarui"})
 }
 
@@ -169,4 +230,44 @@ func DeleteDosen(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Dosen berhasil dihapus"})
+}
+
+// GetMataKuliahByDosen dipakai buat cascading dropdown pas bikin jadwal:
+// cuma nampilin mata kuliah yang emang diampu dosen tsb.
+func GetMataKuliahByDosen(c *gin.Context) {
+
+	dosenID, err := strconv.Atoi(c.Param("id"))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID tidak valid"})
+		return
+	}
+
+	rows, err := database.DB.Query(`
+		SELECT mk.id, mk.nama, mk.kode
+		FROM mata_kuliah mk
+		JOIN dosen_mata_kuliah dmk ON dmk.mata_kuliah_id = mk.id
+		WHERE dmk.dosen_id = ?
+		ORDER BY mk.nama ASC
+	`, dosenID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer rows.Close()
+
+	var data []models.MataKuliah
+
+	for rows.Next() {
+
+		var mk models.MataKuliah
+
+		rows.Scan(&mk.ID, &mk.Nama, &mk.Kode)
+
+		data = append(data, mk)
+	}
+
+	c.JSON(http.StatusOK, data)
 }

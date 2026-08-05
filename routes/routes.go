@@ -57,12 +57,14 @@ func SetupRoutes(r *gin.Engine) {
 	protected.POST("/mata-kuliah", controllers.CreateMataKuliah)
 	protected.PUT("/mata-kuliah/:id", controllers.UpdateMataKuliah)
 	protected.DELETE("/mata-kuliah/:id", controllers.DeleteMataKuliah)
+	protected.GET("/mata-kuliah/:id/kelas", controllers.GetKelasByMataKuliah)
 
 
 	// Jadwal
 	protected.GET("/jadwal", controllers.GetJadwal)
 	protected.POST("/jadwal", controllers.CreateJadwal)
 	protected.DELETE("/jadwal/:id", controllers.DeleteJadwal)
+	protected.GET("/dosen/:id/mata-kuliah", controllers.GetMataKuliahByDosen)
 
 
 	// Rekap absensi kelas (pantau & koreksi hasil absen dosen)

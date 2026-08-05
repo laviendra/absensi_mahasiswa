@@ -189,7 +189,9 @@
                 <input type="hidden" id="idDosen">
                 <input id="namaDosen" class="form-control mb-2" placeholder="Nama Dosen">
                 <input id="usernameDosen" class="form-control mb-2" placeholder="Username">
-                <input id="passwordDosen" type="password" class="form-control" placeholder="Password (kosongkan kalau tidak diganti)">
+                <input id="passwordDosen" type="password" class="form-control mb-2" placeholder="Password (kosongkan kalau tidak diganti)">
+                <label class="form-label">Mata Kuliah yang Diampu</label>
+                <div id="matkulDosenCheckbox" class="border rounded p-2 mb-1" style="max-height:180px; overflow-y:auto;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="simpanDosen()">Simpan</button>
@@ -206,7 +208,9 @@
             <div class="modal-body">
                 <input type="hidden" id="idMatkul">
                 <input id="kodeMatkul" class="form-control mb-2" placeholder="Kode (misal: IF301)">
-                <input id="namaMatkul" class="form-control" placeholder="Nama Mata Kuliah">
+                <input id="namaMatkul" class="form-control mb-2" placeholder="Nama Mata Kuliah">
+                <label class="form-label">Kelas yang Mengambil</label>
+                <div id="kelasMatkulCheckbox" class="border rounded p-2 mb-1" style="max-height:180px; overflow-y:auto;"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="simpanMatkul()">Simpan</button>
@@ -221,14 +225,14 @@
         <div class="modal-content">
             <div class="modal-header"><h5 class="modal-title">Tambah Jadwal</h5></div>
             <div class="modal-body">
-                <select id="dosenJadwal" class="form-select mb-2">
+                <select id="dosenJadwal" class="form-select mb-2" onchange="loadMatkulJadwalByDosen()">
                     <option value="">Pilih Dosen</option>
                 </select>
-                <select id="matkulJadwal" class="form-select mb-2">
-                    <option value="">Pilih Mata Kuliah</option>
+                <select id="matkulJadwal" class="form-select mb-2" onchange="loadKelasJadwalByMatkul()" disabled>
+                    <option value="">Pilih dosen dulu</option>
                 </select>
-                <select id="kelasJadwal" class="form-select mb-2">
-                    <option value="">Pilih Kelas</option>
+                <select id="kelasJadwal" class="form-select mb-2" disabled>
+                    <option value="">Pilih mata kuliah dulu</option>
                 </select>
                 <select id="hariJadwal" class="form-select mb-2">
                     <option value="">Pilih Hari</option>

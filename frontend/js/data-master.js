@@ -6,6 +6,9 @@ if (!token) {
 
 const API = "http://localhost:8080";
 
+let daftarDosenCache = [];
+let daftarMatkulCache = [];
+
 function authHeader(json) {
     let h = { "Authorization": "Bearer " + token };
     if (json) h["Content-Type"] = "application/json";
@@ -73,7 +76,7 @@ function simpanJurusan() {
         alert(data.message || data.error || "Terjadi kesalahan");
         bootstrap.Modal.getInstance(document.getElementById("modalJurusan")).hide();
         loadJurusan();
-        loadKelasOptions();
+        loadKelas();
     });
 
 }
@@ -94,7 +97,7 @@ function hapusJurusan(id) {
 
 // ================= KELAS =================
 
-function loadKelasOptions() {
+function loadKelasOptionsForKelasForm() {
 
     fetch(API + "/jurusan", { headers: authHeader() })
     .then(r => r.json())
@@ -179,7 +182,6 @@ function simpanKelas() {
         alert(data.message || data.error || "Terjadi kesalahan");
         bootstrap.Modal.getInstance(document.getElementById("modalKelas")).hide();
         loadKelas();
-        loadKelasJadwalOptions();
     });
 
 }
@@ -206,16 +208,18 @@ function loadDosen() {
     .then(r => r.json())
     .then(data => {
 
+        daftarDosenCache = data || [];
+
         let tabel = "";
 
-        (data || []).forEach((d, i) => {
+        daftarDosenCache.forEach((d, i) => {
             tabel += `
             <tr>
                 <td>${i + 1}</td>
                 <td>${d.nama}</td>
                 <td>${d.username}</td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="editDosen(${d.id}, '${d.nama}', '${d.username}')">Edit</button>
+                    <button class="btn btn-warning btn-sm" onclick="editDosen(${d.id})">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="hapusDosen(${d.id})">Hapus</button>
                 </td>
             </tr>
@@ -229,20 +233,68 @@ function loadDosen() {
 
 }
 
+// isi checkbox mata kuliah di form Dosen, sekalian tandain yang udah dipilih (edit)
+function isiPilihanMatkulDosen(selectedIds) {
+
+    fetch(API + "/mata-kuliah", { headers: authHeader() })
+    .then(r => r.json())
+    .then(data => {
+
+        daftarMatkulCache = data || [];
+
+        let html = "";
+
+        daftarMatkulCache.forEach(mk => {
+
+            let dicentang = selectedIds.includes(mk.id) ? "checked" : "";
+
+            html += `
+            <div class="form-check">
+                <input
+                    class="form-check-input matkul-dosen-checkbox"
+                    type="checkbox"
+                    value="${mk.id}"
+                    id="cbMatkulDosen${mk.id}"
+                    ${dicentang}>
+                <label class="form-check-label" for="cbMatkulDosen${mk.id}">
+                    ${mk.kode} - ${mk.nama}
+                </label>
+            </div>
+            `;
+
+        });
+
+        document.getElementById("matkulDosenCheckbox").innerHTML =
+            html || `<p class="text-muted mb-0 small">Belum ada mata kuliah, tambahkan dulu di tab Mata Kuliah</p>`;
+
+    });
+
+}
+
 function bukaModalDosen() {
     document.getElementById("idDosen").value = "";
     document.getElementById("namaDosen").value = "";
     document.getElementById("usernameDosen").value = "";
     document.getElementById("passwordDosen").value = "";
+    isiPilihanMatkulDosen([]);
     new bootstrap.Modal(document.getElementById("modalDosen")).show();
 }
 
-function editDosen(id, nama, username) {
-    document.getElementById("idDosen").value = id;
-    document.getElementById("namaDosen").value = nama;
-    document.getElementById("usernameDosen").value = username;
+function editDosen(id) {
+
+    let d = daftarDosenCache.find(item => item.id === id);
+
+    if (!d) return;
+
+    document.getElementById("idDosen").value = d.id;
+    document.getElementById("namaDosen").value = d.nama;
+    document.getElementById("usernameDosen").value = d.username;
     document.getElementById("passwordDosen").value = "";
+
+    isiPilihanMatkulDosen(d.mata_kuliah_ids || []);
+
     new bootstrap.Modal(document.getElementById("modalDosen")).show();
+
 }
 
 function simpanDosen() {
@@ -251,6 +303,10 @@ function simpanDosen() {
     let nama = document.getElementById("namaDosen").value;
     let username = document.getElementById("usernameDosen").value;
     let password = document.getElementById("passwordDosen").value;
+
+    let mataKuliahIds = Array.from(
+        document.querySelectorAll(".matkul-dosen-checkbox:checked")
+    ).map(cb => Number(cb.value));
 
     if (!id && !password) {
         alert("Password wajib diisi untuk dosen baru");
@@ -263,7 +319,7 @@ function simpanDosen() {
     fetch(url, {
         method: method,
         headers: authHeader(true),
-        body: JSON.stringify({ nama, username, password })
+        body: JSON.stringify({ nama, username, password, mata_kuliah_ids: mataKuliahIds })
     })
     .then(r => r.json())
     .then(data => {
@@ -297,16 +353,18 @@ function loadMatkul() {
     .then(r => r.json())
     .then(data => {
 
+        daftarMatkulCache = data || [];
+
         let tabel = "";
 
-        (data || []).forEach((mk, i) => {
+        daftarMatkulCache.forEach((mk, i) => {
             tabel += `
             <tr>
                 <td>${i + 1}</td>
                 <td>${mk.kode}</td>
                 <td>${mk.nama}</td>
                 <td>
-                    <button class="btn btn-warning btn-sm" onclick="editMatkul(${mk.id}, '${mk.kode}', '${mk.nama}')">Edit</button>
+                    <button class="btn btn-warning btn-sm" onclick="editMatkul(${mk.id})">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="hapusMatkul(${mk.id})">Hapus</button>
                 </td>
             </tr>
@@ -320,18 +378,64 @@ function loadMatkul() {
 
 }
 
+// isi checkbox kelas di form Mata Kuliah, sekalian tandain yang udah dipilih (edit)
+function isiPilihanKelasMatkul(selectedIds) {
+
+    fetch(API + "/kelas", { headers: authHeader() })
+    .then(r => r.json())
+    .then(data => {
+
+        let html = "";
+
+        (data || []).forEach(k => {
+
+            let dicentang = selectedIds.includes(k.id) ? "checked" : "";
+
+            html += `
+            <div class="form-check">
+                <input
+                    class="form-check-input kelas-matkul-checkbox"
+                    type="checkbox"
+                    value="${k.id}"
+                    id="cbKelasMatkul${k.id}"
+                    ${dicentang}>
+                <label class="form-check-label" for="cbKelasMatkul${k.id}">
+                    ${k.nama} - ${k.nama_jurusan}
+                </label>
+            </div>
+            `;
+
+        });
+
+        document.getElementById("kelasMatkulCheckbox").innerHTML =
+            html || `<p class="text-muted mb-0 small">Belum ada kelas, tambahkan dulu di tab Kelas</p>`;
+
+    });
+
+}
+
 function bukaModalMatkul() {
     document.getElementById("idMatkul").value = "";
     document.getElementById("kodeMatkul").value = "";
     document.getElementById("namaMatkul").value = "";
+    isiPilihanKelasMatkul([]);
     new bootstrap.Modal(document.getElementById("modalMatkul")).show();
 }
 
-function editMatkul(id, kode, nama) {
-    document.getElementById("idMatkul").value = id;
-    document.getElementById("kodeMatkul").value = kode;
-    document.getElementById("namaMatkul").value = nama;
+function editMatkul(id) {
+
+    let mk = daftarMatkulCache.find(item => item.id === id);
+
+    if (!mk) return;
+
+    document.getElementById("idMatkul").value = mk.id;
+    document.getElementById("kodeMatkul").value = mk.kode;
+    document.getElementById("namaMatkul").value = mk.nama;
+
+    isiPilihanKelasMatkul(mk.kelas_ids || []);
+
     new bootstrap.Modal(document.getElementById("modalMatkul")).show();
+
 }
 
 function simpanMatkul() {
@@ -340,20 +444,23 @@ function simpanMatkul() {
     let kode = document.getElementById("kodeMatkul").value;
     let nama = document.getElementById("namaMatkul").value;
 
+    let kelasIds = Array.from(
+        document.querySelectorAll(".kelas-matkul-checkbox:checked")
+    ).map(cb => Number(cb.value));
+
     let method = id ? "PUT" : "POST";
     let url = id ? API + "/mata-kuliah/" + id : API + "/mata-kuliah";
 
     fetch(url, {
         method: method,
         headers: authHeader(true),
-        body: JSON.stringify({ kode, nama })
+        body: JSON.stringify({ kode, nama, kelas_ids: kelasIds })
     })
     .then(r => r.json())
     .then(data => {
         alert(data.message || data.error || "Terjadi kesalahan");
         bootstrap.Modal.getInstance(document.getElementById("modalMatkul")).hide();
         loadMatkul();
-        loadMatkulJadwalOptions();
     });
 
 }
@@ -372,7 +479,7 @@ function hapusMatkul(id) {
 }
 
 
-// ================= JADWAL =================
+// ================= JADWAL (cascading: Dosen -> Mata Kuliah -> Kelas) =================
 
 function loadDosenJadwalOptions() {
 
@@ -386,26 +493,62 @@ function loadDosenJadwalOptions() {
 
 }
 
-function loadMatkulJadwalOptions() {
+function loadMatkulJadwalByDosen() {
 
-    fetch(API + "/mata-kuliah", { headers: authHeader() })
+    let dosenId = document.getElementById("dosenJadwal").value;
+    let matkulSelect = document.getElementById("matkulJadwal");
+    let kelasSelect = document.getElementById("kelasJadwal");
+
+    kelasSelect.innerHTML = `<option value="">Pilih mata kuliah dulu</option>`;
+    kelasSelect.disabled = true;
+
+    if (!dosenId) {
+        matkulSelect.innerHTML = `<option value="">Pilih dosen dulu</option>`;
+        matkulSelect.disabled = true;
+        return;
+    }
+
+    fetch(API + "/dosen/" + dosenId + "/mata-kuliah", { headers: authHeader() })
     .then(r => r.json())
     .then(data => {
+
+        matkulSelect.disabled = false;
+
         let opt = `<option value="">Pilih Mata Kuliah</option>`;
+
         (data || []).forEach(mk => opt += `<option value="${mk.id}">${mk.kode} - ${mk.nama}</option>`);
-        document.getElementById("matkulJadwal").innerHTML = opt;
+
+        matkulSelect.innerHTML =
+            (data && data.length) ? opt : `<option value="">Dosen ini belum diampu ke mata kuliah manapun</option>`;
+
     });
 
 }
 
-function loadKelasJadwalOptions() {
+function loadKelasJadwalByMatkul() {
 
-    fetch(API + "/kelas", { headers: authHeader() })
+    let matkulId = document.getElementById("matkulJadwal").value;
+    let kelasSelect = document.getElementById("kelasJadwal");
+
+    if (!matkulId) {
+        kelasSelect.innerHTML = `<option value="">Pilih mata kuliah dulu</option>`;
+        kelasSelect.disabled = true;
+        return;
+    }
+
+    fetch(API + "/mata-kuliah/" + matkulId + "/kelas", { headers: authHeader() })
     .then(r => r.json())
     .then(data => {
+
+        kelasSelect.disabled = false;
+
         let opt = `<option value="">Pilih Kelas</option>`;
+
         (data || []).forEach(k => opt += `<option value="${k.id}">${k.nama}</option>`);
-        document.getElementById("kelasJadwal").innerHTML = opt;
+
+        kelasSelect.innerHTML =
+            (data && data.length) ? opt : `<option value="">Mata kuliah ini belum dipakai kelas manapun</option>`;
+
     });
 
 }
@@ -442,12 +585,20 @@ function loadJadwal() {
 }
 
 function bukaModalJadwal() {
+
     document.getElementById("dosenJadwal").value = "";
-    document.getElementById("matkulJadwal").value = "";
-    document.getElementById("kelasJadwal").value = "";
+
+    document.getElementById("matkulJadwal").innerHTML = `<option value="">Pilih dosen dulu</option>`;
+    document.getElementById("matkulJadwal").disabled = true;
+
+    document.getElementById("kelasJadwal").innerHTML = `<option value="">Pilih mata kuliah dulu</option>`;
+    document.getElementById("kelasJadwal").disabled = true;
+
     document.getElementById("hariJadwal").value = "";
     document.getElementById("jamJadwal").value = "";
+
     new bootstrap.Modal(document.getElementById("modalJadwal")).show();
+
 }
 
 function simpanJadwal() {
@@ -500,11 +651,9 @@ function hapusJadwal(id) {
 // ================= INIT =================
 
 loadJurusan();
-loadKelasOptions();
+loadKelasOptionsForKelasForm();
 loadKelas();
 loadDosen();
 loadMatkul();
 loadDosenJadwalOptions();
-loadMatkulJadwalOptions();
-loadKelasJadwalOptions();
 loadJadwal();
