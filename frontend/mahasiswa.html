@@ -184,9 +184,17 @@ placeholder="Nama">
 
 
 <select
+id="jurusanMahasiswa"
+class="form-select mb-2"
+onchange="loadKelasByJurusan()">
+<option value="">Pilih Jurusan</option>
+</select>
+
+<select
 id="kelas"
-class="form-select mb-2">
-<option value="">Pilih Kelas</option>
+class="form-select mb-2"
+disabled>
+<option value="">Pilih jurusan dulu</option>
 </select>
 
 

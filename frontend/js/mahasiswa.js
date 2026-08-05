@@ -4,9 +4,44 @@ if(!token){
     window.location.href="index.html";
 }
 
-function loadKelasOptions(){
+function loadJurusanOptions(){
 
-    fetch("http://localhost:8080/kelas", {
+    fetch("http://localhost:8080/jurusan", {
+        headers:{
+            "Authorization":"Bearer " + token
+        }
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        let opt = `<option value="">Pilih Jurusan</option>`;
+
+        (data || []).forEach(j => {
+            opt += `<option value="${j.id}">${j.nama}</option>`;
+        });
+
+        document.getElementById("jurusanMahasiswa").innerHTML = opt;
+
+    });
+
+}
+
+function loadKelasByJurusan(preselectKelasId){
+
+    let jurusanId = document.getElementById("jurusanMahasiswa").value;
+    let kelasSelect = document.getElementById("kelas");
+
+    if(jurusanId === ""){
+        kelasSelect.innerHTML = `<option value="">Pilih jurusan dulu</option>`;
+        kelasSelect.disabled = true;
+        return;
+    }
+
+    kelasSelect.disabled = false;
+
+    fetch("http://localhost:8080/kelas?jurusan_id=" + jurusanId, {
         headers:{
             "Authorization":"Bearer " + token
         }
@@ -19,10 +54,14 @@ function loadKelasOptions(){
         let opt = `<option value="">Pilih Kelas</option>`;
 
         (data || []).forEach(k => {
-            opt += `<option value="${k.id}">${k.nama} - ${k.nama_jurusan}</option>`;
+            opt += `<option value="${k.id}">${k.nama}</option>`;
         });
 
-        document.getElementById("kelas").innerHTML = opt;
+        kelasSelect.innerHTML = opt;
+
+        if(preselectKelasId){
+            kelasSelect.value = preselectKelasId;
+        }
 
     });
 
@@ -116,7 +155,7 @@ function loadMahasiswa(){
 
 }
 
-loadKelasOptions();
+loadJurusanOptions();
 loadMahasiswa();
 loadKelasCard();
 
@@ -202,7 +241,9 @@ function bukaModalTambah(){
     document.getElementById("idMahasiswa").value = "";
     document.getElementById("nim").value = "";
     document.getElementById("nama").value = "";
-    document.getElementById("kelas").value = "";
+    document.getElementById("jurusanMahasiswa").value = "";
+    document.getElementById("kelas").innerHTML = `<option value="">Pilih jurusan dulu</option>`;
+    document.getElementById("kelas").disabled = true;
 
     document.querySelector("#modalMahasiswa .modal-title").innerText = "Tambah Mahasiswa";
 
@@ -305,7 +346,9 @@ function editMahasiswa(id){
 
         document.getElementById("nama").value = mhs.nama;
 
-        document.getElementById("kelas").value = mhs.kelas_id || "";
+        document.getElementById("jurusanMahasiswa").value = mhs.jurusan_id || "";
+
+        loadKelasByJurusan(mhs.kelas_id);
 
         document.querySelector("#modalMahasiswa .modal-title").innerText = "Edit Mahasiswa";
 

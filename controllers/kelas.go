@@ -12,12 +12,24 @@ import (
 
 func GetKelas(c *gin.Context) {
 
-	rows, err := database.DB.Query(`
+	jurusanFilter := c.Query("jurusan_id")
+
+	query := `
 		SELECT k.id, k.nama, k.jurusan_id, j.nama
 		FROM kelas k
 		JOIN jurusan j ON j.id = k.jurusan_id
-		ORDER BY k.nama ASC
-	`)
+	`
+
+	var args []interface{}
+
+	if jurusanFilter != "" {
+		query += " WHERE k.jurusan_id = ?"
+		args = append(args, jurusanFilter)
+	}
+
+	query += " ORDER BY k.nama ASC"
+
+	rows, err := database.DB.Query(query, args...)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

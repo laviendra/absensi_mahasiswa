@@ -20,7 +20,7 @@ func GetMahasiswa(c *gin.Context) {
 	kelasFilter := c.Query("kelas_id")
 
 	query := `
-		SELECT m.id, m.nama, COALESCE(m.nim, ''), m.kelas_id, COALESCE(k.nama, ''), COALESCE(j.nama, ''), m.status
+		SELECT m.id, m.nama, COALESCE(m.nim, ''), m.kelas_id, COALESCE(k.nama, ''), k.jurusan_id, COALESCE(j.nama, ''), m.status
 		FROM mahasiswa m
 		LEFT JOIN kelas k ON k.id = m.kelas_id
 		LEFT JOIN jurusan j ON j.id = k.jurusan_id
@@ -57,6 +57,7 @@ func GetMahasiswa(c *gin.Context) {
 
 		var mhs models.Mahasiswa
 		var kelasID sql.NullInt64
+		var jurusanID sql.NullInt64
 
 		rows.Scan(
 			&mhs.ID,
@@ -64,6 +65,7 @@ func GetMahasiswa(c *gin.Context) {
 			&mhs.Nim,
 			&kelasID,
 			&mhs.NamaKelas,
+			&jurusanID,
 			&mhs.NamaJurusan,
 			&mhs.Status,
 		)
@@ -71,6 +73,11 @@ func GetMahasiswa(c *gin.Context) {
 		if kelasID.Valid {
 			id := int(kelasID.Int64)
 			mhs.KelasID = &id
+		}
+
+		if jurusanID.Valid {
+			id := int(jurusanID.Int64)
+			mhs.JurusanID = &id
 		}
 
 		mahasiswa = append(mahasiswa, mhs)
