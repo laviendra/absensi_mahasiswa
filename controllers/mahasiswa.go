@@ -99,17 +99,18 @@ func CreateMahasiswa(c *gin.Context) {
 		return
 	}
 
-	if mhs.Nama == "" || mhs.Nim == "" || mhs.KelasID == nil {
+	if mhs.Nama == "" || mhs.Nim == "" || mhs.Password == "" || mhs.KelasID == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama, NIM, dan kelas wajib diisi",
+			"error": "Nama, NIM, Password, dan kelas wajib diisi",
 		})
 		return
 	}
 
 	result, err := database.DB.Exec(
-		"INSERT INTO mahasiswa (nama, nim, kelas_id, status) VALUES (?, ?, ?, 'aktif')",
+		"INSERT INTO mahasiswa (nama, nim, password, kelas_id, status) VALUES (?, ?, ?, ?, 'aktif')",
 		mhs.Nama,
 		mhs.Nim,
+		mhs.Password,
 		*mhs.KelasID,
 	)
 
@@ -150,17 +151,18 @@ func UpdateMahasiswa(c *gin.Context) {
 		return
 	}
 
-	if mhs.Nama == "" || mhs.Nim == "" || mhs.KelasID == nil {
+	if mhs.Nama == "" || mhs.Nim == "" || mhs.Password == "" || mhs.KelasID == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Nama, NIM, dan kelas wajib diisi",
+			"error": "Nama, NIM, Password, dan kelas wajib diisi",
 		})
 		return
 	}
 
 	result, err := database.DB.Exec(
-		"UPDATE mahasiswa SET nama = ?, nim = ?, kelas_id = ? WHERE id = ?",
+		"UPDATE mahasiswa SET nama = ?, nim = ?, password = ?, kelas_id = ? WHERE id = ?",
 		mhs.Nama,
 		mhs.Nim,
+		mhs.Password,
 		*mhs.KelasID,
 		id,
 	)

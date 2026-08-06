@@ -241,6 +241,7 @@ function bukaModalTambah(){
     document.getElementById("idMahasiswa").value = "";
     document.getElementById("nim").value = "";
     document.getElementById("nama").value = "";
+    document.getElementById("password").value = "";
     document.getElementById("jurusanMahasiswa").value = "";
     document.getElementById("kelas").innerHTML = `<option value="">Pilih jurusan dulu</option>`;
     document.getElementById("kelas").disabled = true;
@@ -254,10 +255,21 @@ function simpanMahasiswa(){
     let id = document.getElementById("idMahasiswa").value;
     let nim = document.getElementById("nim").value;
     let nama = document.getElementById("nama").value;
+    let password = document.getElementById("password").value;
     let kelasId = document.getElementById("kelas").value;
 
     if(nim === ""){
         alert("NIM wajib diisi");
+        return;
+    }
+
+    if(nama === ""){
+        alert("Nama wajib diisi");
+        return;
+    }
+
+    if(password === "" && id === ""){
+        alert("Password wajib diisi");
         return;
     }
 
@@ -294,6 +306,7 @@ function simpanMahasiswa(){
 
             nim: nim,
             nama: nama,
+            password: password,
             kelas_id: Number(kelasId)
 
         })
@@ -345,6 +358,8 @@ function editMahasiswa(id){
         document.getElementById("nim").value = mhs.nim || "";
 
         document.getElementById("nama").value = mhs.nama;
+
+        document.getElementById("password").value = "";
 
         document.getElementById("jurusanMahasiswa").value = mhs.jurusan_id || "";
 
