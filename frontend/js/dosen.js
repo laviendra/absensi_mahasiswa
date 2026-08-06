@@ -1,70 +1,26 @@
 let dosenToken = localStorage.getItem("dosenToken");
+
+if (!dosenToken) {
+    window.location.href = "index.html";
+}
+
 let pertemuanAktif = null;
 
-if (dosenToken) {
-    tampilkanJadwal();
-}
-
-function loginDosen() {
-
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
-
-    fetch(API_BASE + "/login-dosen", {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({ username, password })
-
-    })
-
-    .then(response => response.json())
-
-    .then(data => {
-
-        if (data.token) {
-
-            localStorage.setItem("dosenToken", data.token);
-            localStorage.setItem("dosenNama", data.nama);
-            dosenToken = data.token;
-
-            tampilkanJadwal();
-
-        } else {
-
-            document.getElementById("pesanLogin").innerText = data.message || "Login gagal";
-
-        }
-
-    })
-
-    .catch(() => {
-
-        document.getElementById("pesanLogin").innerText = "Server tidak terhubung";
-
-    });
-
-}
+tampilkanJadwal();
 
 function logoutDosen() {
 
     localStorage.removeItem("dosenToken");
     localStorage.removeItem("dosenNama");
 
-    location.reload();
+    window.location.href = "index.html";
 
 }
 
 function tampilkanJadwal() {
 
-    document.getElementById("areaLogin").classList.add("d-none");
     document.getElementById("areaJadwal").classList.remove("d-none");
     document.getElementById("areaAbsensi").classList.add("d-none");
-    document.getElementById("btnLogout").classList.remove("d-none");
 
     fetch(API_BASE + "/dosen-area/jadwal-saya", {
 

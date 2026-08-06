@@ -9,9 +9,11 @@ import (
 
 func SetupRoutes(r *gin.Engine) {
 
-	// Login admin & dosen (tidak pakai middleware)
+	// Login admin & dosen & mahasiswa (tidak pakai middleware)
 	r.POST("/login", controllers.Login)
 	r.POST("/login-dosen", controllers.LoginDosen)
+	r.POST("/login-mahasiswa", controllers.LoginMahasiswa)
+	r.POST("/login-universal", controllers.LoginUniversal)
 
 
 	// ================= ROUTE ADMIN =================
@@ -82,4 +84,11 @@ func SetupRoutes(r *gin.Engine) {
 	dosenRoute.GET("/pertemuan/:id/absensi", controllers.GetAbsensiPertemuan)
 	dosenRoute.POST("/pertemuan/:id/absensi", controllers.SimpanAbsensiKelas)
 	dosenRoute.PUT("/pertemuan/:id/tutup", controllers.TutupPertemuan)
+
+
+	// ================= ROUTE MAHASISWA =================
+	mahasiswaRoute := r.Group("/mahasiswa-area")
+	mahasiswaRoute.Use(middleware.MahasiswaAuthMiddleware())
+
+	mahasiswaRoute.GET("/rekap", controllers.GetRekapSaya)
 }

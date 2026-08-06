@@ -167,3 +167,59 @@ func UpdateAbsensiKelasAdmin(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Kehadiran berhasil dikoreksi"})
 }
+
+// GetRekapSaya: mahasiswa melihat rekap kehadiran sendiri.
+// Data dikembalikan sesuai format frontend mahasiswa.
+func GetRekapSaya(c *gin.Context) {
+
+	mahasiswaID := c.GetInt("mahasiswa_id")
+
+	rows, err := database.DB.Query(`
+		SELECT p.id, p.tanggal, p.status,
+			mk.nama, d.nama,
+			COALESCE(ak.jam_hadir, ''),
+			COALESCE(ak.status_kehadiran, 'Tidak Hadir')
+		FROM pertemuan p
+		JOIN jadwal j ON j.id = p.jadwal_id
+		JOIN mata_kuliah mk ON mk.id = j.mata_kuliah_id
+		JOIN dosen d ON d.id = j.dosen_id
+		JOIN mahasiswa m ON m.kelas_id = j.kelas_id
+		LEFT JOIN absensi_kelas ak
+			ON ak.pertemuan_id = p.id AND ak.mahasiswa_id = ?
+		WHERE m.id = ?
+		ORDER BY p.tanggal DESC, p.id DESC
+	`, mahasiswaID, mahasiswaID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer rows.Close()
+
+	var data []models.RekapKehadiranItem
+
+	for rows.Next() {
+
+		var item models.RekapKehadiranItem
+
+		err = rows.Scan(
+			&item.PertemuanID,
+			&item.Tanggal,
+			&item.StatusPertemuan,
+			&item.NamaMataKuliah,
+			&item.NamaDosen,
+			&item.JamHadir,
+			&item.StatusKehadiran,
+		)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		data = append(data, item)
+	}
+
+	c.JSON(http.StatusOK, data)
+}

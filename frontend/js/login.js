@@ -1,10 +1,10 @@
 function login(){
 
-    let username = document.getElementById("username").value;
+    let identifier = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
 
-    fetch(API_BASE + "/login", {
+    fetch(API_BASE + "/login-universal", {
 
         method: "POST",
 
@@ -14,7 +14,7 @@ function login(){
 
         body: JSON.stringify({
 
-            username: username,
+            identifier: identifier,
             password: password
 
         })
@@ -28,22 +28,32 @@ function login(){
     .then(data => {
 
 
-        if(data.token){
-
-            localStorage.setItem(
-                "token",
-                data.token
-            );
-
-
-            window.location.href =
-            "dashboard.html";
-
-
-        }else{
+        if(!data.token){
 
             document.getElementById("message").innerHTML =
-            "Login gagal";
+            data.message || "Login gagal";
+
+            return;
+
+        }
+
+
+        if(data.role === "admin"){
+
+            localStorage.setItem("token", data.token);
+            window.location.href = "dashboard.html";
+
+        } else if(data.role === "dosen"){
+
+            localStorage.setItem("dosenToken", data.token);
+            localStorage.setItem("dosenNama", data.nama);
+            window.location.href = "dosen.html";
+
+        } else if(data.role === "mahasiswa"){
+
+            localStorage.setItem("mahasiswaToken", data.token);
+            localStorage.setItem("mahasiswaNama", data.nama);
+            window.location.href = "mahasiswa-login.html";
 
         }
 

@@ -13,54 +13,13 @@
 <nav class="navbar navbar-dark bg-dark">
     <div class="container">
         <span class="navbar-brand">Portal Dosen</span>
-        <button id="btnLogout" class="btn btn-danger d-none" onclick="logoutDosen()">Logout</button>
+        <button onclick="logoutDosen()" class="btn btn-danger">Logout</button>
     </div>
 </nav>
 
 <div class="container mt-4">
 
-    <div id="areaLogin">
-
-        <div class="row justify-content-center">
-
-            <div class="col-md-4">
-
-                <div class="card shadow">
-
-                    <div class="card-body">
-
-                        <h4 class="mb-3 text-center">Login Dosen</h4>
-
-                        <input id="username" class="form-control mb-2" placeholder="Username">
-
-                        <input id="password" type="password" class="form-control mb-3" placeholder="Password">
-
-                        <button class="btn btn-primary w-100" onclick="loginDosen()">Login</button>
-
-                        <p id="pesanLogin" class="text-danger mt-2 text-center"></p>
-
-                        <p 
-                        id="message"
-                        class="text-danger mt-3 text-center">
-                        </p>
-
-                        <p class="text-center mt-2">
-                            <a href="index.html" class="text-decoration-none small">Login sebagai Admin &rarr;</a>
-                        </p>
-
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div id="areaJadwal" class="d-none">
+    <div id="areaJadwal">
 
         <h4>Jadwal Mengajar Saya</h4>
 

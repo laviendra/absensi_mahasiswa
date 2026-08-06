@@ -46,6 +46,21 @@ func GenerateTokenDosen(dosenID int, username string) (string, error) {
 	return token.SignedString(getSecretKey())
 }
 
+// GenerateTokenMahasiswa dipakai buat login mahasiswa, claim "role":"mahasiswa"
+// dan "mahasiswa_id" biar middleware bisa bedain & tau ini mahasiswa siapa.
+func GenerateTokenMahasiswa(mahasiswaID int, nim string) (string, error) {
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"role":         "mahasiswa",
+			"mahasiswa_id": mahasiswaID,
+			"nim":          nim,
+			"exp":          time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+	return token.SignedString(getSecretKey())
+}
+
 
 func ValidateToken(tokenString string) (*jwt.Token, error) {
 
