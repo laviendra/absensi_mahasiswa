@@ -52,6 +52,35 @@
 
             <p class="text-muted small">Semua pertemuan yang sudah dibuka dosen, lintas mata kuliah & kelas.</p>
 
+            <div class="card shadow-sm mb-4">
+
+                <div class="card-body">
+
+                    <h6 class="card-title mb-3">Export Rekap Kehadiran per Mata Kuliah</h6>
+
+                    <div class="row g-2 align-items-end">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Pilih Mata Kuliah / Kelas</label>
+                            <select id="jadwalExport" class="form-select">
+                                <option value="">Pilih Jadwal</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" onclick="exportRekap('pdf')">Export PDF</button>
+                        </div>
+
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" onclick="exportRekap('excel')">Export Excel</button>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label class="form-label">Filter Tanggal</label>

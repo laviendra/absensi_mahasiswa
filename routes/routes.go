@@ -73,6 +73,8 @@ func SetupRoutes(r *gin.Engine) {
 	protected.GET("/rekap-kelas/pertemuan", controllers.GetPertemuanAdmin)
 	protected.GET("/rekap-kelas/pertemuan/:id/absensi", controllers.GetAbsensiPertemuanAdmin)
 	protected.PUT("/rekap-kelas/pertemuan/:id/absensi", controllers.UpdateAbsensiKelasAdmin)
+	protected.GET("/rekap-kelas/jadwal/:id/export/pdf", controllers.ExportRekapKelasPDF)
+	protected.GET("/rekap-kelas/jadwal/:id/export/excel", controllers.ExportRekapKelasExcel)
 
 
 	// ================= ROUTE DOSEN =================

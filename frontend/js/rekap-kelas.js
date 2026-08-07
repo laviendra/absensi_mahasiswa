@@ -68,6 +68,78 @@ function resetFilterTanggal() {
 document.getElementById("tanggalFilter").addEventListener("change", loadPertemuan);
 
 loadPertemuan();
+loadJadwalExportOptions();
+
+function loadJadwalExportOptions() {
+
+    fetch(API_BASE + "/jadwal", {
+        headers: { "Authorization": "Bearer " + token }
+    })
+
+    .then(r => r.json())
+
+    .then(data => {
+
+        let opt = `<option value="">Pilih Jadwal</option>`;
+
+        (data || []).forEach(j => {
+            opt += `<option value="${j.id}">${j.nama_mata_kuliah} - ${j.nama_kelas} (${j.nama_dosen})</option>`;
+        });
+
+        document.getElementById("jadwalExport").innerHTML = opt;
+
+    });
+
+}
+
+function exportRekap(format) {
+
+    let jadwalId = document.getElementById("jadwalExport").value;
+
+    if (!jadwalId) {
+        alert("Pilih mata kuliah / kelas dulu");
+        return;
+    }
+
+    let url = API_BASE + "/rekap-kelas/jadwal/" + jadwalId + "/export/" + format;
+
+    fetch(url, {
+        headers: { "Authorization": "Bearer " + token }
+    })
+
+    .then(response => {
+
+        if (!response.ok) {
+            throw new Error("Gagal export, cek apakah jadwal ini sudah punya pertemuan");
+        }
+
+        return response.blob();
+
+    })
+
+    .then(blob => {
+
+        let namaFile = "rekap_kehadiran." + (format === "pdf" ? "pdf" : "xlsx");
+
+        let objectUrl = URL.createObjectURL(blob);
+
+        let a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = namaFile;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(objectUrl);
+
+    })
+
+    .catch(err => {
+        alert(err.message);
+    });
+
+}
 
 function lihatDetail(pertemuanId, matkul, kelas, tanggal) {
 
