@@ -9,6 +9,7 @@ import (
 	"absensi-mahasiswa/models"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // GetMahasiswa default cuma nampilin mahasiswa yang aktif.
@@ -106,11 +107,20 @@ func CreateMahasiswa(c *gin.Context) {
 		return
 	}
 
+	hash, hashErr := bcrypt.GenerateFromPassword([]byte(mhs.Password), bcrypt.DefaultCost)
+
+	if hashErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": hashErr.Error(),
+		})
+		return
+	}
+
 	result, err := database.DB.Exec(
 		"INSERT INTO mahasiswa (nama, nim, password, kelas_id, status) VALUES (?, ?, ?, ?, 'aktif')",
 		mhs.Nama,
 		mhs.Nim,
-		mhs.Password,
+		string(hash),
 		*mhs.KelasID,
 	)
 
@@ -158,11 +168,20 @@ func UpdateMahasiswa(c *gin.Context) {
 		return
 	}
 
+	hash, hashErr := bcrypt.GenerateFromPassword([]byte(mhs.Password), bcrypt.DefaultCost)
+
+	if hashErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": hashErr.Error(),
+		})
+		return
+	}
+
 	result, err := database.DB.Exec(
 		"UPDATE mahasiswa SET nama = ?, nim = ?, password = ?, kelas_id = ? WHERE id = ?",
 		mhs.Nama,
 		mhs.Nim,
-		mhs.Password,
+		string(hash),
 		*mhs.KelasID,
 		id,
 	)
